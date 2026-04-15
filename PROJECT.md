@@ -10,11 +10,11 @@ Permanent project tracking document for the `main` branch.
 - [x] Implementation of `index.html`
 - [x] Implementation of `style.css`
 - [x] Implementation of `app.js`
-- [/] GitHub Integration
-    - [ ] Check `gh` status
-    - [ ] Create GitHub repo
-    - [ ] Push code
-- [ ] Final Verification
+- [x] GitHub Integration
+    - [x] Check `gh` status
+    - [x] Create GitHub repo
+    - [x] Push code
+- [x] Final Verification
 
 ### File List
 - `index.html`: Core structure, mobile viewport settings.
@@ -34,6 +34,10 @@ Permanent project tracking document for the `main` branch.
 
 ## 3. Completed Work
 - [x] HTML/CSS/JS baseline implementation.
+- [x] Winner & Turn Order selection modes.
+- [x] Advanced Visuals: SVG circular progress, neon glowing indicators.
+- [x] Audio Engine & Haptic feedback.
+- [x] Selection history with localStorage persistence.
 - [x] Project metadata and license.
 
 ## 4. Issues and Out of Scope

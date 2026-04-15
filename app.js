@@ -81,7 +81,8 @@ const dom = {
     countdown: document.getElementById('countdown-timer'),
     app: document.getElementById('app'),
     historyList: document.getElementById('history-list'),
-    modeBtns: document.querySelectorAll('.mode-btn')
+    modeBtns: document.querySelectorAll('.mode-btn'),
+    clearHistoryBtn: document.getElementById('clear-history')
 };
 
 function init() {
@@ -102,17 +103,40 @@ function init() {
         });
     });
 
+    dom.clearHistoryBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        clearHistory();
+        AudioEngine.init();
+        AudioEngine.playTick();
+    });
+
     updateHistoryUI();
 }
 
 function updateHistoryUI() {
     if (!dom.historyList) return;
     dom.historyList.innerHTML = '';
+    
+    if (state.history.length === 0) {
+        dom.clearHistoryBtn.classList.remove('visible');
+        dom.historyList.style.opacity = '0';
+        return;
+    }
+
+    dom.clearHistoryBtn.classList.add('visible');
+    dom.historyList.style.opacity = '0.4';
+
     state.history.slice(-10).reverse().forEach(colorIndex => {
         const item = document.createElement('div');
         item.className = `history-item indicator-${colorIndex}`;
         dom.historyList.appendChild(item);
     });
+}
+
+function clearHistory() {
+    state.history = [];
+    localStorage.removeItem('chooseWhoHistory');
+    updateHistoryUI();
 }
 
 function handleTouchStart(e) {

@@ -132,8 +132,38 @@ body, html {
 #history-list {
     display: flex;
     gap: 10px;
-    opacity: 0.4;
+    margin-bottom: 15px;
     transition: opacity 0.3s ease;
+}
+
+#clear-history {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-family);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    padding: 6px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    display: block;
+    margin: 0 auto;
+}
+
+#clear-history.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#clear-history:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
 .history-item {
