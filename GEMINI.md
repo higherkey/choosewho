@@ -16,7 +16,13 @@ The application utilizes a `Map` to track active touches by their unique `identi
 - `touchstart`: Adds a finger reference, creates a DOM indicator, and resets the countdown timer.
 - `touchmove`: Updates indicator positions.
 - `touchend/touchcancel`: Removes the finger reference and indicator, and resets the timer.
-- **Selection Algorithm**: Uses `Math.random()` to pick a winner from the `keys()` of the active touches map once the 3-second timer expires.
+- **Selection Modes**:
+    - `Winner`: Randomly picks one indicator as the winner.
+    - `Order`: Shuffles and assigns a numerical rank to every indicator.
+- **Selection History**: Winners are persisted to `localStorage` and displayed in a bottom-aligned history list with a "Clear" function.
+- **Visual Timers**: SVG circular indicators overlay the touch points, synchronized with the 3000ms countdown.
+- **Audio Engine**: Synthesizes tones (sine/triangle) using the Web Audio API for tactile feedback without audio files.
+- **Haptic Feedback**: High-fidelity vibration pulses (where supported) synchronized with timer ticks and selection results.
 
 ### Maintenance Recommendations
 
