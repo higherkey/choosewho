@@ -14,9 +14,16 @@
 <body>
     <main id="app">
         <div id="touch-overlay"></div>
+        <div id="mode-toggle">
+            <div class="mode-btn active" data-mode="winner">Winner</div>
+            <div class="mode-btn" data-mode="order">Order</div>
+        </div>
         <div id="ui-overlay">
             <h1 id="status-text">Place fingers to start</h1>
             <div id="countdown-timer" class="hidden"></div>
+        </div>
+        <div id="history-overlay">
+            <div id="history-list"></div>
         </div>
     </main>
     <script src="app.js"></script>
