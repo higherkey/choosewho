@@ -12,6 +12,9 @@
     - `index.html`: Added history and mode toggle UI elements.
     - `style.css`: Styles for mode toggle, history display, progress ring, and rank text.
     - `app.js`: Core logic for sounds, timer animation, game modes, and history.
+    - `PROJECT.md`: Updated completion status.
+    - `GEMINI.md`: Updated AI context with new features.
+    - `.vscode/settings.json`: Editor config.
     - `docs/traces/feat-enhanced-gameplay-work-trace.md`: Trace document for feature tracking.
 - **Rationale**:
     - Enhance player feedback and game versatility for tabletop gaming.
