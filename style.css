@@ -59,6 +59,58 @@ body, html {
     z-index: 10;
 }
 
+#mode-toggle {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 20px;
+    pointer-events: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mode-btn {
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    color: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Rank Text */
+.rank-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.finger-indicator.show-rank .rank-text {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
 #status-text {
     font-weight: 300;
     letter-spacing: 0.2rem;
@@ -66,6 +118,30 @@ body, html {
     font-size: 1.2rem;
     opacity: 0.6;
     transition: opacity 0.5s ease;
+}
+
+#history-overlay {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 20;
+}
+
+#history-list {
+    display: flex;
+    gap: 10px;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+
+.history-item {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 10px currentColor;
 }
 
 #countdown-timer {
@@ -83,14 +159,36 @@ body, html {
 /* Touch Indicator Styles */
 .finger-indicator {
     position: absolute;
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     transform: translate(-50%, -50%) scale(0);
-    border: 6px solid white;
+    border: 4px solid white;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.2);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
     z-index: 5;
+}
+
+.timer-svg {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 120px;
+    height: 120px;
+    transform: rotate(-90deg);
+}
+
+.timer-circle {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 6;
+    stroke-dasharray: 358; /* 2 * PI * 57 */
+    stroke-dashoffset: 358;
+    transition: stroke-dashoffset 3s linear;
+}
+
+.finger-indicator.counting .timer-circle {
+    stroke-dashoffset: 0;
 }
 
 .finger-indicator.active {
