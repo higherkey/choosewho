@@ -12,15 +12,18 @@
     - `index.html`: Added history and mode toggle UI elements.
     - `style.css`: Styles for mode toggle, history display, progress ring, and rank text.
     - `app.js`: Core logic for sounds, timer animation, game modes, and history.
+    - `docs/traces/feat-enhanced-gameplay-work-trace.md`: Trace document for feature tracking.
 - **Rationale**:
     - Enhance player feedback and game versatility for tabletop gaming.
 
 ## 2. In Progress Work
-- Done.
+- (Completed)
 
 ## 3. Completed Work
 - **Summary**:
     - Implemented all gameplay enhancements and visual feedback improvements.
+    - Added standalone issues for future roadmap items.
+    - Performed senior peer review (accessibility, code quality).
 - **Revised Rationale**:
     - Replaced existing touch/timer logic with a more robust system that supports multiple modes and visual timers.
 
@@ -34,4 +37,3 @@ The following roadmap items were identified and formalized as standalone issues 
 - [#2: Teams Mode](https://github.com/higherkey/choosewho/issues/2)
 - [#3: Support for multiple languages](https://github.com/higherkey/choosewho/issues/3)
 - [#4: Roll a Die Mode](https://github.com/higherkey/choosewho/issues/4)
-
