@@ -44,8 +44,9 @@ Permanent project tracking document for the `main` branch.
 - [x] **Roll a Die Mode**: Random 1-6 assignment mode with Unicode dice rendering.
 - [x] **Internationalization (i18n)**: English and Spanish language support with UI toggle.
 - [x] **Teams Mode**: Alternating assignment of fingers into two even teams (T1, T2).
+- [x] **Theme & Soundscape Engine**: Neon (default) and Retro themes, dynamic audio waveforms on Synth.
 - [x] Project metadata and license.
 
 ## 4. Issues and Out of Scope
 ### 4a) Current Backlog (Tracked via GitHub Issues)
-- Issue #1: Customizable UI Themes and Soundscapes
+- (All currently specified feature issues resolved)
