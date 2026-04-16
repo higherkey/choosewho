@@ -380,7 +380,7 @@ function selectWinner() {
 
     state.isSelected = true;
     state.isCounting = false;
-    dom.statusText.textContent = state.mode === 'winner' ? 'Chosen!' : 'Turn Order Assigned!';
+    dom.statusText.textContent = state.mode === 'winner' ? 'Chosen!' : (state.mode === 'order' ? 'Turn Order Assigned!' : 'Dice Rolled!');
 
     const identifiers = Array.from(state.touches.keys());
     let winnerId;
@@ -395,7 +395,7 @@ function selectWinner() {
                 data.element.classList.add('lost');
             }
         });
-    } else {
+    } else if (state.mode === 'order') {
         const shuffled = [...identifiers].sort(() => Math.random() - 0.5);
         winnerId = shuffled[0];
         shuffled.forEach((id, index) => {
@@ -403,7 +403,32 @@ function selectWinner() {
             data.element.classList.remove('counting');
             data.element.classList.add('show-rank');
             data.element.querySelector('.rank-text').textContent = index + 1;
+            data.element.querySelector('.rank-text').style.fontSize = ''; 
             if (index === 0) data.element.classList.add('winner');
+            else data.element.classList.add('lost');
+        });
+    } else if (state.mode === 'die') {
+        const diceChars = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        let highestRoll = -1;
+        const rolls = new Map();
+        
+        identifiers.forEach(id => {
+            const rollIndex = Math.floor(Math.random() * 6);
+            rolls.set(id, rollIndex);
+            if (rollIndex > highestRoll) {
+                highestRoll = rollIndex;
+                winnerId = id;
+            }
+        });
+
+        state.touches.forEach((data, id) => {
+            const rollIndex = rolls.get(id);
+            data.element.classList.remove('counting');
+            data.element.classList.add('show-rank');
+            data.element.querySelector('.rank-text').textContent = diceChars[rollIndex];
+            data.element.querySelector('.rank-text').style.fontSize = '4.5rem';
+            
+            if (id === winnerId) data.element.classList.add('winner');
             else data.element.classList.add('lost');
         });
     }

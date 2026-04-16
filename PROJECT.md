@@ -40,6 +40,8 @@ Permanent project tracking document for the `main` branch.
 - [x] Selection history with localStorage persistence.
 - [x] **Desktop Integration**: Pointer (mouse) support, manual start/reset buttons.
 - [x] **UI Layout Optimization**: Top-aligned history and mode toggle integration.
+- [x] **Volume & Time Tweaks**: Volume slider, mute button, updated countdown (2.5s) and terminology ("Chosen").
+- [x] **Roll a Die Mode**: Random 1-6 assignment mode with Unicode dice rendering.
 - [x] Project metadata and license.
 
 ## 4. Issues and Out of Scope
@@ -47,5 +49,3 @@ Permanent project tracking document for the `main` branch.
 - Issue #1: Customizable UI Themes and Soundscapes
 - Issue #2: Teams Mode
 - Issue #3: Support for multiple languages
-- Issue #4: Roll a Die Mode
-- Issue #7: Volume and Time Tweaks
