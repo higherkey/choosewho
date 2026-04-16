@@ -4,7 +4,7 @@
  */
 
 const CONFIG = {
-    COUNTDOWN_MS: 3000,
+    COUNTDOWN_MS: 2500,
     MAX_TOUCHES: 6,
     COLORS: [
         '#00f2ff', // Cyan
@@ -27,7 +27,10 @@ const AudioEngine = {
 
     playTone(freq, type, duration, volume = 0.1) {
         if (!this.ctx) return;
+        if (state.isMuted) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const finalVolume = volume * (state.volume * 2);
 
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -35,7 +38,7 @@ const AudioEngine = {
         osc.type = type;
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
 
-        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+        gain.gain.setValueAtTime(finalVolume, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
 
         osc.connect(gain);
@@ -73,7 +76,9 @@ const state = {
     colorAvailability: [true, true, true, true, true, true],
     history: JSON.parse(localStorage.getItem('chooseWhoHistory') || '[]'),
     mode: 'winner', // 'winner' or 'order'
-    isDesktop: window.matchMedia('(pointer: fine)').matches
+    isDesktop: window.matchMedia('(pointer: fine)').matches,
+    volume: parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
+    isMuted: localStorage.getItem('chooseWhoMuted') === 'true'
 };
 
 const dom = {
@@ -86,7 +91,9 @@ const dom = {
     clearHistoryBtn: document.getElementById('clear-history'),
     desktopControls: document.getElementById('desktop-controls'),
     startBtn: document.getElementById('start-btn'),
-    resetBoardBtn: document.getElementById('reset-board-btn')
+    resetBoardBtn: document.getElementById('reset-board-btn'),
+    volumeSlider: document.getElementById('volume-slider'),
+    muteBtn: document.getElementById('mute-btn')
 };
 
 function init() {
@@ -138,7 +145,33 @@ function init() {
     dom.clearHistoryBtn.addEventListener('touchstart', clearHandler, { passive: false });
     dom.clearHistoryBtn.addEventListener('click', clearHandler);
 
+    if (dom.volumeSlider && dom.muteBtn) {
+        dom.volumeSlider.addEventListener('input', (e) => {
+            state.volume = parseInt(e.target.value) / 100;
+            localStorage.setItem('chooseWhoVolume', state.volume);
+            if (state.isMuted && state.volume > 0) {
+                state.isMuted = false;
+                localStorage.setItem('chooseWhoMuted', 'false');
+            }
+            updateVolumeUI();
+        });
+
+        dom.muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.isMuted = !state.isMuted;
+            localStorage.setItem('chooseWhoMuted', state.isMuted);
+            updateVolumeUI();
+        });
+        updateVolumeUI();
+    }
+
     updateHistoryUI();
+}
+
+function updateVolumeUI() {
+    if (!dom.muteBtn) return;
+    dom.muteBtn.textContent = state.isMuted ? '🔇' : '🔊';
+    dom.volumeSlider.value = state.isMuted ? 0 : state.volume * 100;
 }
 
 function updateHistoryUI() {
@@ -347,7 +380,7 @@ function selectWinner() {
 
     state.isSelected = true;
     state.isCounting = false;
-    dom.statusText.textContent = state.mode === 'winner' ? 'Winner Selected!' : 'Turn Order Assigned!';
+    dom.statusText.textContent = state.mode === 'winner' ? 'Chosen!' : 'Turn Order Assigned!';
 
     const identifiers = Array.from(state.touches.keys());
     let winnerId;

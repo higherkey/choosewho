@@ -131,17 +131,58 @@ body, html {
     transition: opacity 0.5s ease;
 }
 
-#history-overlay {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 8px 16px;
-    border-radius: 15px;
+#volume-toggle {
     display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 8px;
-    pointer-events: auto;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+}
+
+#volume-slider {
+    width: 60px;
+    height: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    outline: none;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #00f2ff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00f2ff;
+}
+
+/* History overlay */
+#history-overlay {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #history-list {
@@ -306,7 +347,7 @@ body, html {
     stroke-width: 6;
     stroke-dasharray: 358; /* 2 * PI * 57 */
     stroke-dashoffset: 358;
-    transition: stroke-dashoffset 3s linear;
+    transition: stroke-dashoffset 2.5s linear;
 }
 
 .finger-indicator.counting .timer-circle {
