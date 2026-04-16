@@ -174,8 +174,17 @@ body, html {
     height: 32px;
 }
 
-.sub-btn:hover {
+.sub-btn.active {
     background: rgba(255, 255, 255, 0.1);
+    color: var(--color-1);
+    border-color: var(--color-1);
+    box-shadow: 0 0 10px var(--accent-glow);
+    animation: sub-pulse 1s infinite alternate;
+}
+
+@keyframes sub-pulse {
+    from { transform: scale(1); opacity: 0.8; }
+    to { transform: scale(1.05); opacity: 1; }
 }
 
 .sub-btn .symbol {
