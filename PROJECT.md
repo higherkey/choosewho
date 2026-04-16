@@ -42,10 +42,10 @@ Permanent project tracking document for the `main` branch.
 - [x] **UI Layout Optimization**: Top-aligned history and mode toggle integration.
 - [x] **Volume & Time Tweaks**: Volume slider, mute button, updated countdown (2.5s) and terminology ("Chosen").
 - [x] **Roll a Die Mode**: Random 1-6 assignment mode with Unicode dice rendering.
+- [x] **Internationalization (i18n)**: English and Spanish language support with UI toggle.
 - [x] Project metadata and license.
 
 ## 4. Issues and Out of Scope
 ### 4a) Current Backlog (Tracked via GitHub Issues)
 - Issue #1: Customizable UI Themes and Soundscapes
 - Issue #2: Teams Mode
-- Issue #3: Support for multiple languages
