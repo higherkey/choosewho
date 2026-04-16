@@ -19,11 +19,29 @@ The application utilizes a `Map` to track active touches/players by their unique
 - **Selection Modes**:
     - `Winner`: Randomly picks one indicator as the winner (visual pulse).
     - `Order`: Shuffles and assigns numerical ranks to every indicator.
-- **Selection History**: persistent selection results (localized indicators) are displayed in a **top-aligned** history list integrated with the mode toggle.
+- **Selection History**: persistent selection results (localized indicators) are displayed in a **modal-based** history list (Stopwatch icon).
+- **Interaction Modes**:
+    - `Free`: Standard touch-anywhere logic.
+    - `Grid`: Fixed slots for structured elimination.
+- **Selection Targets**:
+    - `First` (`| <`): Picks a winner instantly.
+    - `Last` (`> |`): Sequentially eliminates players until one remains (Explosion mode).
 - **Desktop Controls**: Manual "Start" and "Reset" buttons are dynamically revealed on pointer-fine devices.
 - **Visual Timers**: SVG circular indicators overlay the touch points, synchronized with the 3000ms countdown.
-- **Audio Engine**: Synthesizes tones (sine/triangle) using the Web Audio API for tactile feedback without audio files.
+- **Shape Geometry**: Unique SVG shapes (Circle, Triangle, etc.) assigned based on finger placement order (1-8).
+- **Audio Engine**: Synthesizes tones (sine/triangle/square/sawtooth) and procedural noise (explosions) using the Web Audio API.
 - **Haptic Feedback**: High-fidelity vibration pulses (where supported) synchronized with timer ticks and selection results.
+
+### Progress Trace
+
+- [x] Implementation of `app.js` v2.0
+- [x] 8-Finger Support
+- [x] Grid Mode & Elimination Logic
+- [x] New Themes: Cyber, Mono, Retro v2
+- [x] Order-based SVG Shape Rendering
+- [x] Per-mode History system
+- [x] GitHub Issue #15 for Advanced Settings
+- [x] Final Handover
 
 ### Maintenance Recommendations
 

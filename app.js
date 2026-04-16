@@ -51,15 +51,17 @@ function t(key) {
 }
 
 const CONFIG = {
-    COUNTDOWN_MS: 2500,
-    MAX_TOUCHES: 6,
+    COUNTDOWN_MS: 3000,
+    MAX_TOUCHES: 8,
     COLORS: [
         '#00f2ff', // Cyan
         '#ff00ff', // Magenta
         '#39ff14', // Lime
         '#ffce00', // Amber
         '#bc13fe', // Purple
-        '#ff3131'  // Crimson
+        '#ff3131', // Crimson
+        '#ffffff', // White
+        '#ff7b00'  // Orange
     ]
 };
 
@@ -77,7 +79,9 @@ const AudioEngine = {
         if (state.isMuted) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
-        const finalVolume = volume * (state.volume * 2);
+        const isNeon = typeof state !== 'undefined' && state.theme === 'neon';
+        const gainOffset = isNeon ? 1.5 : 1.0; // Boost Neon/Sine waves
+        const finalVolume = volume * (state.volume * 2) * gainOffset;
 
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -114,18 +118,53 @@ const AudioEngine = {
         this.playTone(isRetro ? 330 : 440, isRetro ? 'sawtooth' : 'triangle', 0.5, 0.1);
         setTimeout(() => this.playTone(isRetro ? 494 : 660, isRetro ? 'sawtooth' : 'triangle', 0.6, 0.08), 100);
         setTimeout(() => this.playTone(isRetro ? 660 : 880, isRetro ? 'sawtooth' : 'triangle', 0.8, 0.06), 200);
+    },
+
+    playExplosion() {
+        if (!this.ctx) return;
+        if (state.isMuted) return;
+        
+        const duration = 0.5;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const noiseFilter = this.ctx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+        noiseFilter.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + duration);
+
+        const noiseEnvelope = this.ctx.createGain();
+        noiseEnvelope.gain.setValueAtTime(state.volume * 1.5, this.ctx.currentTime);
+        noiseEnvelope.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseEnvelope);
+        noiseEnvelope.connect(this.ctx.destination);
+
+        noise.start();
+        noise.stop(this.ctx.currentTime + duration);
     }
 };
 
 const state = {
-    touches: new Map(), // identifier -> { x, y, element, colorIndex }
+    touches: new Map(), // identifier -> { x, y, element, colorIndex, order }
     timerId: null,
     tickInterval: null,
     isCounting: false,
     isSelected: false,
-    colorAvailability: [true, true, true, true, true, true],
-    history: JSON.parse(localStorage.getItem('chooseWhoHistory') || '[]'),
-    mode: 'winner', // 'winner' or 'order'
+    colorAvailability: new Array(CONFIG.MAX_TOUCHES).fill(true),
+    history: JSON.parse(localStorage.getItem('chooseWhoHistoryV2') || '{}'),
+    mode: 'winner', // 'winner' | 'order' | 'die' | 'teams'
+    interactionMode: 'free', // 'free' | 'grid'
+    selectionTarget: 'first', // 'first' | 'last'
     isDesktop: window.matchMedia('(pointer: fine)').matches,
     volume: parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
     isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
@@ -140,10 +179,14 @@ const dom = {
     app: document.getElementById('app'),
     historyList: document.getElementById('history-list'),
     historyOverlay: document.getElementById('history-overlay'),
+    historyBtn: document.getElementById('history-btn'),
     settingsModal: document.getElementById('settings-modal'),
     settingsBtn: document.getElementById('settings-btn'),
     closeSettingsBtn: document.getElementById('close-settings-btn'),
     modeBtns: document.querySelectorAll('.mode-btn'),
+    targetToggle: document.getElementById('target-toggle'),
+    gridToggle: document.getElementById('grid-toggle'),
+    gridContainer: document.getElementById('grid-container'),
     clearHistoryBtn: document.getElementById('clear-history'),
     desktopControls: document.getElementById('desktop-controls'),
     startBtn: document.getElementById('start-btn'),
@@ -155,6 +198,65 @@ const dom = {
 };
 
 function init() {
+    // Mode Buttons
+    dom.modeBtns.forEach(btn => {
+        const handler = (e) => {
+            e.stopPropagation();
+            if (e.type === 'touchstart') e.preventDefault();
+            state.mode = btn.dataset.mode;
+            dom.modeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            AudioEngine.init();
+            AudioEngine.playTouch();
+            if (state.isSelected) resetGame();
+            updateHistoryUI(); // Update history view for the current mode
+        };
+        btn.addEventListener('touchstart', handler, { passive: false });
+        btn.addEventListener('click', handler);
+    });
+
+    // Clear History
+    const clearHandler = (e) => {
+        e.stopPropagation();
+        if (e.type === 'touchstart') e.preventDefault();
+        clearHistory();
+        AudioEngine.init();
+        AudioEngine.playTick();
+    };
+    dom.clearHistoryBtn.addEventListener('touchstart', clearHandler, { passive: false });
+    dom.clearHistoryBtn.addEventListener('click', clearHandler);
+
+    // Volume Controls
+    if (dom.volumeSlider && dom.muteBtn) {
+        dom.volumeSlider.addEventListener('input', (e) => {
+            state.volume = parseInt(e.target.value) / 100;
+            localStorage.setItem('chooseWhoVolume', state.volume);
+            if (state.isMuted && state.volume > 0) {
+                state.isMuted = false;
+                localStorage.setItem('chooseWhoMuted', 'false');
+            }
+            updateVolumeUI();
+        });
+
+        dom.muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.isMuted = !state.isMuted;
+            localStorage.setItem('chooseWhoMuted', state.isMuted);
+            updateVolumeUI();
+        });
+        updateVolumeUI();
+    }
+
+    // Language
+    if (dom.langSelect) {
+        dom.langSelect.value = state.lang;
+        dom.langSelect.addEventListener('change', (e) => {
+            state.lang = e.target.value;
+            localStorage.setItem('chooseWhoLang', state.lang);
+            updateUILanguage();
+        });
+    }
+
     // Touch Events
     window.addEventListener('touchstart', handleTouchStart, { passive: false });
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -201,58 +303,6 @@ function init() {
         updateStatus();
     }
 
-    dom.modeBtns.forEach(btn => {
-        const handler = (e) => {
-            e.stopPropagation();
-            if (e.type === 'touchstart') e.preventDefault();
-            state.mode = btn.dataset.mode;
-            dom.modeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            AudioEngine.init();
-            AudioEngine.playTouch();
-            if (state.isSelected) resetGame();
-        };
-        btn.addEventListener('touchstart', handler, { passive: false });
-        btn.addEventListener('click', handler);
-    });
-
-    const clearHandler = (e) => {
-        e.stopPropagation();
-        if (e.type === 'touchstart') e.preventDefault();
-        clearHistory();
-        AudioEngine.init();
-        AudioEngine.playTick();
-    };
-    dom.clearHistoryBtn.addEventListener('touchstart', clearHandler, { passive: false });
-    dom.clearHistoryBtn.addEventListener('click', clearHandler);
-
-    if (dom.volumeSlider && dom.muteBtn) {
-        dom.volumeSlider.addEventListener('input', (e) => {
-            state.volume = parseInt(e.target.value) / 100;
-            localStorage.setItem('chooseWhoVolume', state.volume);
-            if (state.isMuted && state.volume > 0) {
-                state.isMuted = false;
-                localStorage.setItem('chooseWhoMuted', 'false');
-            }
-            updateVolumeUI();
-        });
-
-        dom.muteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            state.isMuted = !state.isMuted;
-            localStorage.setItem('chooseWhoMuted', state.isMuted);
-            updateVolumeUI();
-        });
-        updateVolumeUI();
-    }
-    if (dom.langSelect) {
-        dom.langSelect.value = state.lang;
-        dom.langSelect.addEventListener('change', (e) => {
-            state.lang = e.target.value;
-            localStorage.setItem('chooseWhoLang', state.lang);
-            updateUILanguage();
-        });
-    }
     if (dom.themeSelect) {
         dom.themeSelect.value = state.theme;
         document.body.className = `theme-${state.theme}`;
@@ -260,11 +310,77 @@ function init() {
             state.theme = e.target.value;
             localStorage.setItem('chooseWhoTheme', state.theme);
             document.body.className = `theme-${state.theme}`;
+            // Reflow colors/adjustments if needed
+        });
+    }
+
+    if (dom.targetToggle) {
+        dom.targetToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.selectionTarget = state.selectionTarget === 'first' ? 'last' : 'first';
+            dom.targetToggle.querySelector('.first-symbol').classList.toggle('hidden', state.selectionTarget !== 'first');
+            dom.targetToggle.querySelector('.last-symbol').classList.toggle('hidden', state.selectionTarget !== 'last');
+            
+            // "Last" mode forces Grid interaction
+            if (state.selectionTarget === 'last' && state.interactionMode === 'free') {
+                toggleInteractionMode('grid');
+            }
+            
+            AudioEngine.playTick();
+        });
+    }
+
+    if (dom.gridToggle) {
+        dom.gridToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Don't allow free mode if target is "last"
+            if (state.selectionTarget === 'last' && state.interactionMode === 'grid') {
+                return;
+            }
+            toggleInteractionMode(state.interactionMode === 'free' ? 'grid' : 'free');
+            AudioEngine.playTick();
+        });
+    }
+
+    if (dom.historyBtn) {
+        dom.historyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dom.historyOverlay.classList.toggle('hidden');
+            AudioEngine.playTick();
         });
     }
 
     updateUILanguage();
     updateHistoryUI();
+}
+
+function toggleInteractionMode(mode) {
+    state.interactionMode = mode;
+    dom.gridToggle.classList.toggle('active', mode === 'grid');
+    dom.gridContainer.classList.toggle('hidden', mode !== 'grid');
+    if (mode === 'grid') {
+        generateGrid();
+    } else {
+        dom.gridContainer.innerHTML = '';
+    }
+    resetGame();
+}
+
+function generateGrid() {
+    dom.gridContainer.innerHTML = '';
+    const size = CONFIG.MAX_TOUCHES;
+    const cols = size > 4 ? 2 : 1;
+    const rows = Math.ceil(size / cols);
+    
+    dom.gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    dom.gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    
+    for (let i = 0; i < size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.dataset.index = i;
+        dom.gridContainer.appendChild(cell);
+    }
 }
 
 function updateUILanguage() {
@@ -293,18 +409,17 @@ function updateHistoryUI() {
     if (!dom.historyList) return;
     dom.historyList.innerHTML = '';
     
-    if (state.history.length === 0) {
+    const modeHistory = state.history[state.mode] || [];
+    
+    if (modeHistory.length === 0) {
         dom.clearHistoryBtn.classList.remove('visible');
-        dom.historyOverlay.classList.add('hidden');
-        dom.historyList.style.opacity = '0';
+        dom.historyList.innerHTML = '<div style="opacity: 0.5; font-size: 0.7rem;">NO HISTORY</div>';
         return;
     }
 
     dom.clearHistoryBtn.classList.add('visible');
-    dom.historyOverlay.classList.remove('hidden');
-    dom.historyList.style.opacity = '0.4';
 
-    state.history.slice(-10).reverse().forEach(colorIndex => {
+    [...modeHistory].reverse().forEach(colorIndex => {
         const item = document.createElement('div');
         item.className = `history-item indicator-${colorIndex}`;
         dom.historyList.appendChild(item);
@@ -312,8 +427,8 @@ function updateHistoryUI() {
 }
 
 function clearHistory() {
-    state.history = [];
-    localStorage.removeItem('chooseWhoHistory');
+    state.history[state.mode] = [];
+    localStorage.setItem('chooseWhoHistoryV2', JSON.stringify(state.history));
     updateHistoryUI();
 }
 
@@ -328,20 +443,37 @@ function getAppCoordinates(clientX, clientY) {
 function createIndicator(clientX, clientY, identifier) {
     if (state.touches.size >= CONFIG.MAX_TOUCHES) return null;
 
+    let targetX = clientX;
+    let targetY = clientY;
+    let gridCell = null;
+
+    if (state.interactionMode === 'grid') {
+        const cell = document.elementFromPoint(clientX, clientY)?.closest('.grid-cell');
+        if (!cell || cell.classList.contains('occupied') || cell.classList.contains('unavailable')) return null;
+        
+        const rect = cell.getBoundingClientRect();
+        targetX = rect.left + rect.width / 2;
+        targetY = rect.top + rect.height / 2;
+        gridCell = cell;
+        cell.classList.add('occupied');
+    }
+
     const colorIndex = state.colorAvailability.findIndex(available => available);
     if (colorIndex === -1) return null;
 
     state.colorAvailability[colorIndex] = false;
+    const order = state.touches.size + 1;
 
     const element = document.createElement('div');
     element.className = `finger-indicator indicator-${colorIndex}`;
     
-    const coords = getAppCoordinates(clientX, clientY);
+    const coords = getAppCoordinates(targetX, targetY);
     element.style.left = `${coords.x}px`;
     element.style.top = `${coords.y}px`;
     
     element.innerHTML = `
-        <svg class="timer-svg" viewBox="0 0 120 120">
+        <svg class="shape-svg" viewBox="0 0 120 120">
+            ${getShapeSVG(order)}
             <circle class="timer-circle" cx="60" cy="60" r="57"></circle>
         </svg>
         <div class="rank-text"></div>
@@ -351,7 +483,7 @@ function createIndicator(clientX, clientY, identifier) {
     void element.offsetWidth; // Force reflow
     element.classList.add('active');
 
-    const touchData = { x: coords.x, y: coords.y, element, colorIndex };
+    const touchData = { x: coords.x, y: coords.y, element, colorIndex, order, gridCell };
     state.touches.set(identifier, touchData);
     
     AudioEngine.playTouch();
@@ -361,10 +493,25 @@ function createIndicator(clientX, clientY, identifier) {
     return touchData;
 }
 
+function getShapeSVG(order) {
+    switch (order) {
+        case 1: return '<circle cx="60" cy="60" r="30" fill="none" stroke="currentColor" stroke-width="4"></circle>';
+        case 2: return '<line x1="40" y1="40" x2="80" y2="40" stroke="currentColor" stroke-width="4"/><line x1="40" y1="80" x2="80" y2="80" stroke="currentColor" stroke-width="4"/>';
+        case 3: return '<polygon points="60,30 90,80 30,80" fill="none" stroke="currentColor" stroke-width="4"/>';
+        case 4: return '<rect x="35" y="35" width="50" height="50" fill="none" stroke="currentColor" stroke-width="4"/>';
+        case 5: return '<polygon points="60,25 95,50 82,90 38,90 25,50" fill="none" stroke="currentColor" stroke-width="4"/>';
+        case 6: return '<polygon points="60,25 90,40 90,80 60,95 30,80 30,40" fill="none" stroke="currentColor" stroke-width="4"/>';
+        case 7: return '<polygon points="60,20 85,35 95,65 75,90 45,90 25,65 35,35" fill="none" stroke="currentColor" stroke-width="4"/>';
+        case 8: return '<polygon points="60,20 88,32 100,60 88,88 60,100 32,88 20,60 32,32" fill="none" stroke="currentColor" stroke-width="4"/>';
+        default: return '';
+    }
+}
+
 function removeIndicator(identifier) {
     const data = state.touches.get(identifier);
     if (data) {
         data.element.classList.remove('active');
+        if (data.gridCell) data.gridCell.classList.remove('occupied');
         setTimeout(() => {
             if (data.element.parentNode) data.element.remove();
         }, 200);
@@ -521,6 +668,54 @@ function selectWinner() {
     if (state.tickInterval) clearInterval(state.tickInterval);
     state.tickInterval = null;
 
+    if (state.selectionTarget === 'last') {
+        runEliminationSequence();
+    } else {
+        finalizeSelection();
+    }
+}
+
+async function runEliminationSequence() {
+    dom.statusText.textContent = 'ELIMINATING...';
+    
+    const identifiers = Array.from(state.touches.keys());
+    const shuffled = [...identifiers].sort(() => Math.random() - 0.5);
+    
+    // Eliminate all but one
+    const toEliminate = shuffled.slice(0, shuffled.length - 1);
+    const survivorId = shuffled[shuffled.length - 1];
+
+    for (const id of toEliminate) {
+        const data = state.touches.get(id);
+        if (data) {
+            data.element.classList.remove('counting');
+            data.element.classList.add('exploding');
+            if (data.gridCell) {
+                data.gridCell.classList.add('unavailable');
+                data.gridCell.classList.remove('occupied');
+            }
+            AudioEngine.playExplosion();
+            if (navigator.vibrate) navigator.vibrate(50);
+            await new Promise(r => setTimeout(r, 600));
+        }
+    }
+
+    // Finalize with the survivor
+    state.isSelected = true;
+    state.isCounting = false;
+    dom.statusText.textContent = 'THE LAST ONE!';
+    
+    const survivorData = state.touches.get(survivorId);
+    if (survivorData) {
+        survivorData.element.classList.remove('counting');
+        survivorData.element.classList.add('winner');
+        logHistory(survivorData.colorIndex);
+    }
+    
+    AudioEngine.playWin();
+}
+
+function finalizeSelection() {
     state.isSelected = true;
     state.isCounting = false;
     dom.statusText.textContent = state.mode === 'winner' ? t('winText') : (state.mode === 'order' ? t('orderText') : (state.mode === 'die' ? t('dieText') : t('teamsText')));
@@ -597,10 +792,7 @@ function selectWinner() {
 
     const winnerData = state.touches.get(winnerId);
     if (winnerData) {
-        state.history.push(winnerData.colorIndex);
-        if (state.history.length > 20) state.history.shift();
-        localStorage.setItem('chooseWhoHistory', JSON.stringify(state.history));
-        updateHistoryUI();
+        logHistory(winnerData.colorIndex);
     }
 
     if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
@@ -609,6 +801,14 @@ function selectWinner() {
         dom.resetBoardBtn.textContent = t('resetBoardBtn');
         dom.resetBoardBtn.classList.remove('hidden');
     }
+}
+
+function logHistory(colorIndex) {
+    if (!state.history[state.mode]) state.history[state.mode] = [];
+    state.history[state.mode].push(colorIndex);
+    if (state.history[state.mode].length > 20) state.history[state.mode].shift();
+    localStorage.setItem('chooseWhoHistoryV2', JSON.stringify(state.history));
+    updateHistoryUI();
 }
 
 function resetGame() {

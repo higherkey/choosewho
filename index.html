@@ -16,16 +16,42 @@
     <main id="app">
         <div id="touch-overlay"></div>
         <header id="top-bar">
-            <div id="mode-toggle">
-                <div class="mode-btn active" data-mode="winner">Chosen</div>
-                <div class="mode-btn" data-mode="order">Order</div>
-                <div class="mode-btn" data-mode="die">Die</div>
-                <div class="mode-btn" data-mode="teams">Teams</div>
+            <div id="mode-nav">
+                <div id="mode-toggle">
+                    <div class="mode-btn active" data-mode="winner">Chosen</div>
+                    <div class="mode-btn" data-mode="order">Order</div>
+                    <div class="mode-btn" data-mode="die">Die</div>
+                    <div class="mode-btn" data-mode="teams">Teams</div>
+                </div>
+                
+                <div id="sub-menu">
+                    <button id="target-toggle" class="sub-btn" title="Toggle Selection Target">
+                        <span class="symbol first-symbol">| &lt;</span>
+                        <span class="symbol last-symbol hidden">&gt; |</span>
+                    </button>
+                    <button id="grid-toggle" class="sub-btn" title="Toggle Grid Mode">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <div id="history-overlay" class="hidden">
-                <div id="history-list"></div>
-                <button id="clear-history">Clear</button>
+            <div id="history-container">
+                <button id="history-btn" class="icon-btn" title="History">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L21 8M21 3v5h-5"></path>
+                    </svg>
+                </button>
+                <div id="history-overlay" class="hidden">
+                    <div id="history-list"></div>
+                    <button id="clear-history">Clear</button>
+                </div>
             </div>
         </header>
 
@@ -57,12 +83,15 @@
                         <select id="theme-select">
                             <option value="neon">Neon</option>
                             <option value="retro">Retro</option>
+                            <option value="cyber">Cyber</option>
+                            <option value="mono">Mono</option>
                         </select>
                     </div>
                 </div>
             </div>
         </div>
 
+        <div id="grid-container" class="hidden"></div>
         <div id="ui-overlay">
             <h1 id="status-text">Place fingers to start</h1>
             <div id="countdown-timer" class="hidden"></div>
