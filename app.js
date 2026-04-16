@@ -8,6 +8,7 @@ const i18n = {
         winner: 'Chosen',
         order: 'Order',
         die: 'Die',
+        teams: 'Teams',
         clear: 'Clear',
         desktopPrompt: 'Click to add players',
         desktopWait: 'Add at least one more player',
@@ -18,6 +19,7 @@ const i18n = {
         winText: 'Chosen!',
         orderText: 'Turn Order Assigned!',
         dieText: 'Dice Rolled!',
+        teamsText: 'Teams Assigned!',
         startBtn: 'Start',
         resetBtn: 'Reset',
         resetBoardBtn: 'Reset Board'
@@ -26,6 +28,7 @@ const i18n = {
         winner: 'Elegido',
         order: 'Orden',
         die: 'Dado',
+        teams: 'Equipos',
         clear: 'Borrar',
         desktopPrompt: 'Haz clic para agregar jugadores',
         desktopWait: 'Agrega un jugador más',
@@ -36,6 +39,7 @@ const i18n = {
         winText: '¡Elegido!',
         orderText: '¡Turnos asignados!',
         dieText: '¡Dados lanzados!',
+        teamsText: '¡Equipos asignados!',
         startBtn: 'Empezar',
         resetBtn: 'Reiniciar',
         resetBoardBtn: 'Limpiar Tablero'
@@ -227,6 +231,7 @@ function updateUILanguage() {
     document.querySelector('.mode-btn[data-mode="winner"]').textContent = t('winner');
     document.querySelector('.mode-btn[data-mode="order"]').textContent = t('order');
     document.querySelector('.mode-btn[data-mode="die"]').textContent = t('die');
+    document.querySelector('.mode-btn[data-mode="teams"]').textContent = t('teams');
     dom.clearHistoryBtn.textContent = t('clear');
     if (state.isDesktop) {
         if (!state.isSelected && !state.isCounting) {
@@ -449,7 +454,7 @@ function selectWinner() {
 
     state.isSelected = true;
     state.isCounting = false;
-    dom.statusText.textContent = state.mode === 'winner' ? t('winText') : (state.mode === 'order' ? t('orderText') : t('dieText'));
+    dom.statusText.textContent = state.mode === 'winner' ? t('winText') : (state.mode === 'order' ? t('orderText') : (state.mode === 'die' ? t('dieText') : t('teamsText')));
 
     const identifiers = Array.from(state.touches.keys());
     let winnerId;
@@ -499,6 +504,23 @@ function selectWinner() {
             
             if (id === winnerId) data.element.classList.add('winner');
             else data.element.classList.add('lost');
+        });
+    } else if (state.mode === 'teams') {
+        const shuffled = [...identifiers].sort(() => Math.random() - 0.5);
+        winnerId = shuffled[0];
+        const half = Math.ceil(shuffled.length / 2);
+        const team1 = new Set(shuffled.slice(0, half));
+        
+        state.touches.forEach((data, id) => {
+            data.element.classList.remove('counting');
+            data.element.classList.add('show-rank');
+            data.element.querySelector('.rank-text').style.fontSize = ''; 
+            
+            if (team1.has(id)) {
+                data.element.querySelector('.rank-text').textContent = 'T1';
+            } else {
+                data.element.querySelector('.rank-text').textContent = 'T2';
+            }
         });
     }
 
