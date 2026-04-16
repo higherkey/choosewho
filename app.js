@@ -72,7 +72,8 @@ const state = {
     isSelected: false,
     colorAvailability: [true, true, true, true, true, true],
     history: JSON.parse(localStorage.getItem('chooseWhoHistory') || '[]'),
-    mode: 'winner' // 'winner' or 'order'
+    mode: 'winner', // 'winner' or 'order'
+    isDesktop: window.matchMedia('(pointer: fine)').matches
 };
 
 const dom = {
@@ -82,33 +83,60 @@ const dom = {
     app: document.getElementById('app'),
     historyList: document.getElementById('history-list'),
     modeBtns: document.querySelectorAll('.mode-btn'),
-    clearHistoryBtn: document.getElementById('clear-history')
+    clearHistoryBtn: document.getElementById('clear-history'),
+    desktopControls: document.getElementById('desktop-controls'),
+    startBtn: document.getElementById('start-btn'),
+    resetBoardBtn: document.getElementById('reset-board-btn')
 };
 
 function init() {
+    // Touch Events
     window.addEventListener('touchstart', handleTouchStart, { passive: false });
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd, { passive: false });
     window.addEventListener('touchcancel', handleTouchEnd, { passive: false });
     
-    dom.modeBtns.forEach(btn => {
-        btn.addEventListener('touchstart', (e) => {
+    // Mouse Events for Desktop
+    if (state.isDesktop) {
+        window.addEventListener('mousedown', handleMouseDown);
+        dom.startBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (state.touches.size >= 2) startTimer();
+        });
+        dom.resetBoardBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetGame();
+        });
+        
+        // Initial UI State
+        dom.desktopControls.classList.remove('hidden');
+        updateStatus();
+    }
+
+    dom.modeBtns.forEach(btn => {
+        const handler = (e) => {
+            e.stopPropagation();
+            if (e.type === 'touchstart') e.preventDefault();
             state.mode = btn.dataset.mode;
             dom.modeBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             AudioEngine.init();
             AudioEngine.playTouch();
             if (state.isSelected) resetGame();
-        });
+        };
+        btn.addEventListener('touchstart', handler, { passive: false });
+        btn.addEventListener('click', handler);
     });
 
-    dom.clearHistoryBtn.addEventListener('touchstart', (e) => {
+    const clearHandler = (e) => {
         e.stopPropagation();
+        if (e.type === 'touchstart') e.preventDefault();
         clearHistory();
         AudioEngine.init();
         AudioEngine.playTick();
-    });
+    };
+    dom.clearHistoryBtn.addEventListener('touchstart', clearHandler, { passive: false });
+    dom.clearHistoryBtn.addEventListener('click', clearHandler);
 
     updateHistoryUI();
 }
@@ -139,72 +167,95 @@ function clearHistory() {
     updateHistoryUI();
 }
 
-function handleTouchStart(e) {
-    // Initialize audio on first user interaction
-    AudioEngine.init();
+function createIndicator(x, y, identifier) {
+    if (state.touches.size >= CONFIG.MAX_TOUCHES) return null;
 
-    // If selection was done, reset the game on the next touch
+    const colorIndex = state.colorAvailability.findIndex(available => available);
+    if (colorIndex === -1) return null;
+
+    state.colorAvailability[colorIndex] = false;
+
+    const element = document.createElement('div');
+    element.className = `finger-indicator indicator-${colorIndex}`;
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+    
+    element.innerHTML = `
+        <svg class="timer-svg" viewBox="0 0 120 120">
+            <circle class="timer-circle" cx="60" cy="60" r="57"></circle>
+        </svg>
+        <div class="rank-text"></div>
+    `;
+
+    dom.overlay.appendChild(element);
+    void element.offsetWidth; // Force reflow
+    element.classList.add('active');
+
+    const touchData = { x, y, element, colorIndex };
+    state.touches.set(identifier, touchData);
+    
+    AudioEngine.playTouch();
+    return touchData;
+}
+
+function removeIndicator(identifier) {
+    const data = state.touches.get(identifier);
+    if (data) {
+        data.element.classList.remove('active');
+        setTimeout(() => {
+            if (data.element.parentNode) data.element.remove();
+        }, 200);
+        state.colorAvailability[data.colorIndex] = true;
+        state.touches.delete(identifier);
+    }
+}
+
+function handleMouseDown(e) {
     if (state.isSelected) {
         resetGame();
+        return;
     }
 
-    // Prevent default browser behavior (zoom/scroll)
+    // Don't add indicators if clicking on existing ones (they will be removed instead)
+    if (e.target.closest('.finger-indicator')) {
+        const indicator = e.target.closest('.finger-indicator');
+        const id = Array.from(state.touches.entries()).find(([_, data]) => data.element === indicator)?.[0];
+        if (id !== undefined) {
+            removeIndicator(id);
+            updateStatus();
+        }
+        return;
+    }
+
+    // Don't add indicators if clicking on UI
+    if (e.target.closest('#mode-toggle') || e.target.closest('#history-overlay') || e.target.closest('#desktop-controls')) {
+        return;
+    }
+
+    AudioEngine.init();
+    createIndicator(e.clientX, e.clientY, `mouse_${Date.now()}`);
+    updateStatus();
+}
+
+function handleTouchStart(e) {
+    AudioEngine.init();
+    if (state.isSelected) resetGame();
     if (e.cancelable) e.preventDefault();
 
-    let addedNew = false;
     for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
-        
-        if (state.touches.size >= CONFIG.MAX_TOUCHES) continue;
-
-        const colorIndex = state.colorAvailability.findIndex(available => available);
-        if (colorIndex === -1) continue;
-
-        state.colorAvailability[colorIndex] = false;
-        addedNew = true;
-
-        const element = document.createElement('div');
-        element.className = `finger-indicator indicator-${colorIndex}`;
-        element.style.left = `${touch.clientX}px`;
-        element.style.top = `${touch.clientY}px`;
-        
-        // Add timer SVG and rank placeholder
-        element.innerHTML = `
-            <svg class="timer-svg" viewBox="0 0 120 120">
-                <circle class="timer-circle" cx="60" cy="60" r="57"></circle>
-            </svg>
-            <div class="rank-text"></div>
-        `;
-
-        dom.overlay.appendChild(element);
-
-        // Force reflow for animation
-        void element.offsetWidth;
-        element.classList.add('active');
-
-        state.touches.set(touch.identifier, {
-            x: touch.clientX,
-            y: touch.clientY,
-            element,
-            colorIndex
-        });
+        createIndicator(e.changedTouches[i].clientX, e.changedTouches[i].clientY, e.changedTouches[i].identifier);
     }
 
-    if (addedNew) AudioEngine.playTouch();
-
-    if (!state.isSelected) {
-        resetTimer();
-    }
+    if (!state.isSelected) resetTimer();
 }
 
 function handleTouchMove(e) {
     if (e.cancelable) e.preventDefault();
-    if (state.isSelected) return; // Ignore moves after selection
+    if (state.isSelected) return;
 
     for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
         const data = state.touches.get(touch.identifier);
-        
         if (data) {
             data.x = touch.clientX;
             data.y = touch.clientY;
@@ -219,76 +270,80 @@ function handleTouchEnd(e) {
 
     for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
-        const data = state.touches.get(touch.identifier);
-
-        if (data) {
-            if (!state.isSelected) {
-                // If not in selected state, remove the indicator immediately
-                data.element.classList.remove('active');
-                setTimeout(() => {
-                    if (data.element.parentNode) data.element.remove();
-                }, 200);
-                state.colorAvailability[data.colorIndex] = true;
-                state.touches.delete(touch.identifier);
-            }
-            // If selected, we keep the data/element in state until resetGame is called by a new touch
+        if (!state.isSelected) {
+            removeIndicator(touch.identifier);
         }
     }
 
-    if (!state.isSelected) {
-        resetTimer();
+    if (!state.isSelected) resetTimer();
+}
+
+function updateStatus() {
+    if (state.isDesktop) {
+        if (state.touches.size === 0) {
+            dom.statusText.textContent = 'Click to add players';
+            dom.statusText.style.opacity = '0.6';
+        } else if (state.touches.size === 1) {
+            dom.statusText.textContent = 'Add at least one more player';
+            dom.statusText.style.opacity = '0.8';
+        } else {
+            dom.statusText.textContent = 'Ready to start?';
+            dom.statusText.style.opacity = '1';
+        }
+    } else {
+        if (state.touches.size === 0) {
+            dom.statusText.textContent = 'Place fingers to start';
+            dom.statusText.style.opacity = '0.6';
+        } else if (state.touches.size === 1) {
+            dom.statusText.textContent = 'Waiting for more fingers...';
+            dom.statusText.style.opacity = '0.8';
+        } else {
+            dom.statusText.textContent = 'Hold steady...';
+            dom.statusText.style.opacity = '1';
+        }
     }
 }
 
 function resetTimer() {
-    // Clear existing timer and interval
-    if (state.timerId) {
-        clearTimeout(state.timerId);
-        state.timerId = null;
-    }
-    if (state.tickInterval) {
-        clearInterval(state.tickInterval);
-        state.tickInterval = null;
-    }
+    if (state.timerId) clearTimeout(state.timerId);
+    if (state.tickInterval) clearInterval(state.tickInterval);
+    state.timerId = null;
+    state.tickInterval = null;
 
-    // Reset counting class on all indicators
+    state.touches.forEach(data => data.element.classList.remove('counting'));
+
+    if (state.touches.size >= 2) {
+        startTimer();
+    } else {
+        state.isCounting = false;
+        updateStatus();
+    }
+}
+
+function startTimer() {
+    state.isCounting = true;
+    updateStatus();
+    
     state.touches.forEach(data => {
-        data.element.classList.remove('counting');
-        // Force reflow to reset transition if needed
+        data.element.classList.add('counting');
         void data.element.offsetWidth;
     });
 
-    if (state.touches.size >= 2) {
-        state.isCounting = true;
-        dom.statusText.textContent = 'Hold steady...';
-        dom.statusText.style.opacity = '1';
-        
-        // Start counting animation
-        state.touches.forEach(data => {
-            data.element.classList.add('counting');
-        });
+    AudioEngine.playTick();
+    state.tickInterval = setInterval(() => AudioEngine.playTick(), 1000);
+    state.timerId = setTimeout(selectWinner, CONFIG.COUNTDOWN_MS);
 
-        // Start ticking sound
-        AudioEngine.playTick();
-        state.tickInterval = setInterval(() => {
-            AudioEngine.playTick();
-        }, 1000);
-
-        state.timerId = setTimeout(selectWinner, CONFIG.COUNTDOWN_MS);
-    } else {
-        state.isCounting = false;
-        dom.statusText.textContent = state.touches.size === 1 ? 'Waiting for more fingers...' : 'Place fingers to start';
-        dom.statusText.style.opacity = '0.6';
+    if (state.isDesktop) {
+        dom.startBtn.classList.add('hidden');
+        dom.resetBoardBtn.classList.add('hidden');
     }
 }
 
 function selectWinner() {
     if (state.touches.size < 2) return;
 
-    if (state.tickInterval) {
-        clearInterval(state.tickInterval);
-        state.tickInterval = null;
-    }
+    if (state.tickInterval) clearInterval(state.tickInterval);
+    state.tickInterval = null;
 
     state.isSelected = true;
     state.isCounting = false;
@@ -308,7 +363,6 @@ function selectWinner() {
             }
         });
     } else {
-        // Order Mode: Shuffle and assign ranks
         const shuffled = [...identifiers].sort(() => Math.random() - 0.5);
         winnerId = shuffled[0];
         shuffled.forEach((id, index) => {
@@ -316,17 +370,13 @@ function selectWinner() {
             data.element.classList.remove('counting');
             data.element.classList.add('show-rank');
             data.element.querySelector('.rank-text').textContent = index + 1;
-            if (index === 0) {
-                data.element.classList.add('winner');
-            } else {
-                data.element.classList.add('lost');
-            }
+            if (index === 0) data.element.classList.add('winner');
+            else data.element.classList.add('lost');
         });
     }
 
     AudioEngine.playWin();
 
-    // Update history with the primary winner
     const winnerData = state.touches.get(winnerId);
     if (winnerData) {
         state.history.push(winnerData.colorIndex);
@@ -335,28 +385,33 @@ function selectWinner() {
         updateHistoryUI();
     }
 
-    // Provide haptic feedback if available
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 200]);
+    if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+
+    if (state.isDesktop) {
+        dom.resetBoardBtn.textContent = 'Reset Board';
+        dom.resetBoardBtn.classList.remove('hidden');
     }
 }
 
 function resetGame() {
-    if (state.tickInterval) {
-        clearInterval(state.tickInterval);
-        state.tickInterval = null;
-    }
-    if (state.timerId) {
-        clearTimeout(state.timerId);
-        state.timerId = null;
-    }
+    if (state.tickInterval) clearInterval(state.tickInterval);
+    if (state.timerId) clearTimeout(state.timerId);
+    state.tickInterval = null;
+    state.timerId = null;
+    
     state.isSelected = false;
     state.isCounting = false;
     state.colorAvailability = [true, true, true, true, true, true];
     dom.overlay.innerHTML = '';
     state.touches.clear();
-    dom.statusText.textContent = 'Place fingers to start';
-    dom.statusText.style.opacity = '0.6';
+    
+    if (state.isDesktop) {
+        dom.startBtn.classList.remove('hidden');
+        dom.resetBoardBtn.classList.remove('hidden');
+        dom.resetBoardBtn.textContent = 'Reset';
+    }
+    
+    updateStatus();
 }
 
 init();
