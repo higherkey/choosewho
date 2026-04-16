@@ -139,6 +139,10 @@ const dom = {
     countdown: document.getElementById('countdown-timer'),
     app: document.getElementById('app'),
     historyList: document.getElementById('history-list'),
+    historyOverlay: document.getElementById('history-overlay'),
+    settingsModal: document.getElementById('settings-modal'),
+    settingsBtn: document.getElementById('settings-btn'),
+    closeSettingsBtn: document.getElementById('close-settings-btn'),
     modeBtns: document.querySelectorAll('.mode-btn'),
     clearHistoryBtn: document.getElementById('clear-history'),
     desktopControls: document.getElementById('desktop-controls'),
@@ -157,6 +161,29 @@ function init() {
     window.addEventListener('touchend', handleTouchEnd, { passive: false });
     window.addEventListener('touchcancel', handleTouchEnd, { passive: false });
     
+    // Settings Modal
+    if (dom.settingsBtn && dom.settingsModal && dom.closeSettingsBtn) {
+        dom.settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dom.settingsModal.classList.remove('hidden');
+        });
+        dom.settingsBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dom.settingsModal.classList.remove('hidden');
+        }, { passive: false });
+        
+        dom.closeSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dom.settingsModal.classList.add('hidden');
+        });
+        dom.closeSettingsBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dom.settingsModal.classList.add('hidden');
+        }, { passive: false });
+    }
+
     // Mouse Events for Desktop
     if (state.isDesktop) {
         window.addEventListener('mousedown', handleMouseDown);
@@ -268,11 +295,13 @@ function updateHistoryUI() {
     
     if (state.history.length === 0) {
         dom.clearHistoryBtn.classList.remove('visible');
+        dom.historyOverlay.classList.add('hidden');
         dom.historyList.style.opacity = '0';
         return;
     }
 
     dom.clearHistoryBtn.classList.add('visible');
+    dom.historyOverlay.classList.remove('hidden');
     dom.historyList.style.opacity = '0.4';
 
     state.history.slice(-10).reverse().forEach(colorIndex => {
@@ -316,6 +345,9 @@ function createIndicator(x, y, identifier) {
     state.touches.set(identifier, touchData);
     
     AudioEngine.playTouch();
+    if (navigator.vibrate) {
+        navigator.vibrate(5);
+    }
     return touchData;
 }
 
@@ -349,7 +381,7 @@ function handleMouseDown(e) {
     }
 
     // Don't add indicators if clicking on UI
-    if (e.target.closest('#mode-toggle') || e.target.closest('#history-overlay') || e.target.closest('#desktop-controls')) {
+    if (e.target.closest('#top-bar') || e.target.closest('#history-overlay') || e.target.closest('#desktop-controls') || e.target.closest('#settings-modal') || e.target.closest('#settings-btn')) {
         return;
     }
 
