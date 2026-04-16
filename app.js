@@ -96,11 +96,13 @@ const AudioEngine = {
     },
 
     playTouch() {
-        this.playTone(200, 'sine', 0.1, 0.05);
+        const isRetro = typeof state !== 'undefined' && state.theme === 'retro';
+        this.playTone(isRetro ? 150 : 200, isRetro ? 'square' : 'sine', 0.1, 0.05);
     },
 
     playTick() {
-        this.playTone(400, 'sine', 0.05, 0.03);
+        const isRetro = typeof state !== 'undefined' && state.theme === 'retro';
+        this.playTone(isRetro ? 300 : 400, isRetro ? 'square' : 'sine', 0.05, 0.03);
         // Haptic pulse synchronized with tick
         if (navigator.vibrate) {
             navigator.vibrate(10);
@@ -108,9 +110,10 @@ const AudioEngine = {
     },
 
     playWin() {
-        this.playTone(440, 'triangle', 0.5, 0.1);
-        setTimeout(() => this.playTone(660, 'triangle', 0.6, 0.08), 100);
-        setTimeout(() => this.playTone(880, 'triangle', 0.8, 0.06), 200);
+        const isRetro = typeof state !== 'undefined' && state.theme === 'retro';
+        this.playTone(isRetro ? 330 : 440, isRetro ? 'sawtooth' : 'triangle', 0.5, 0.1);
+        setTimeout(() => this.playTone(isRetro ? 494 : 660, isRetro ? 'sawtooth' : 'triangle', 0.6, 0.08), 100);
+        setTimeout(() => this.playTone(isRetro ? 660 : 880, isRetro ? 'sawtooth' : 'triangle', 0.8, 0.06), 200);
     }
 };
 
@@ -126,7 +129,8 @@ const state = {
     isDesktop: window.matchMedia('(pointer: fine)').matches,
     volume: parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
     isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
-    lang: localStorage.getItem('chooseWhoLang') || 'en'
+    lang: localStorage.getItem('chooseWhoLang') || 'en',
+    theme: localStorage.getItem('chooseWhoTheme') || 'neon'
 };
 
 const dom = {
@@ -142,7 +146,8 @@ const dom = {
     resetBoardBtn: document.getElementById('reset-board-btn'),
     volumeSlider: document.getElementById('volume-slider'),
     muteBtn: document.getElementById('mute-btn'),
-    langSelect: document.getElementById('lang-select')
+    langSelect: document.getElementById('lang-select'),
+    themeSelect: document.getElementById('theme-select')
 };
 
 function init() {
@@ -219,6 +224,15 @@ function init() {
             state.lang = e.target.value;
             localStorage.setItem('chooseWhoLang', state.lang);
             updateUILanguage();
+        });
+    }
+    if (dom.themeSelect) {
+        dom.themeSelect.value = state.theme;
+        document.body.className = `theme-${state.theme}`;
+        dom.themeSelect.addEventListener('change', (e) => {
+            state.theme = e.target.value;
+            localStorage.setItem('chooseWhoTheme', state.theme);
+            document.body.className = `theme-${state.theme}`;
         });
     }
 

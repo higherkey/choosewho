@@ -13,6 +13,16 @@
     --color-6: #ff3131; /* Crimson */
 }
 
+body.theme-retro {
+    --bg-color: #2b1d3d; /* warm retro dark purple */
+    --color-1: #ffb7b2; /* pastel warm */
+    --color-2: #e2f0cb; /* pastel lime */
+    --color-3: #b5ead7; /* pastel mint */
+    --color-4: #c7ceea; /* pastel purple */
+    --color-5: #ffdac1; /* pastel orange */
+    --color-6: #fec8d8; /* pastel pink */
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -173,7 +183,7 @@ body, html {
     box-shadow: 0 0 10px #00f2ff;
 }
 
-#lang-toggle {
+#lang-toggle, #theme-toggle {
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
@@ -182,7 +192,7 @@ body, html {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#lang-select {
+#lang-select, #theme-select {
     background: transparent;
     color: white;
     border: none;
@@ -193,7 +203,7 @@ body, html {
     cursor: pointer;
 }
 
-#lang-select option {
+#lang-select option, #theme-select option {
     background: #111;
     color: white;
 }
