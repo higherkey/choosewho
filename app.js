@@ -317,7 +317,15 @@ function clearHistory() {
     updateHistoryUI();
 }
 
-function createIndicator(x, y, identifier) {
+function getAppCoordinates(clientX, clientY) {
+    const rect = dom.app.getBoundingClientRect();
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
+}
+
+function createIndicator(clientX, clientY, identifier) {
     if (state.touches.size >= CONFIG.MAX_TOUCHES) return null;
 
     const colorIndex = state.colorAvailability.findIndex(available => available);
@@ -327,8 +335,10 @@ function createIndicator(x, y, identifier) {
 
     const element = document.createElement('div');
     element.className = `finger-indicator indicator-${colorIndex}`;
-    element.style.left = `${x}px`;
-    element.style.top = `${y}px`;
+    
+    const coords = getAppCoordinates(clientX, clientY);
+    element.style.left = `${coords.x}px`;
+    element.style.top = `${coords.y}px`;
     
     element.innerHTML = `
         <svg class="timer-svg" viewBox="0 0 120 120">
@@ -341,7 +351,7 @@ function createIndicator(x, y, identifier) {
     void element.offsetWidth; // Force reflow
     element.classList.add('active');
 
-    const touchData = { x, y, element, colorIndex };
+    const touchData = { x: coords.x, y: coords.y, element, colorIndex };
     state.touches.set(identifier, touchData);
     
     AudioEngine.playTouch();
@@ -418,8 +428,9 @@ function handleTouchMove(e) {
         const touch = e.changedTouches[i];
         const data = state.touches.get(touch.identifier);
         if (data) {
-            data.x = touch.clientX;
-            data.y = touch.clientY;
+            const coords = getAppCoordinates(touch.clientX, touch.clientY);
+            data.x = coords.x;
+            data.y = coords.y;
             data.element.style.left = `${data.x}px`;
             data.element.style.top = `${data.y}px`;
         }
