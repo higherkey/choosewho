@@ -14,18 +14,21 @@
 <body>
     <main id="app">
         <div id="touch-overlay"></div>
-        <div id="mode-toggle">
-            <div class="mode-btn active" data-mode="winner">Winner</div>
-            <div class="mode-btn" data-mode="order">Order</div>
-        </div>
+        <header id="top-bar">
+            <div id="mode-toggle">
+                <div class="mode-btn active" data-mode="winner">Chosen</div>
+                <div class="mode-btn" data-mode="order">Order</div>
+            </div>
+            <div id="volume-toggle">
+                <button id="mute-btn" class="icon-btn">🔊</button>
+                <input type="range" id="volume-slider" min="0" max="100" value="50">
+            </div>
+            <div id="history-overlay">
+                <div id="history-list"></div>
+                <button id="clear-history">Clear</button>
+            </div>
+        </header>
         <div id="ui-overlay">
-            <h1 id="status-text">Place fingers to start</h1>
-            <div id="countdown-timer" class="hidden"></div>
-        </div>
-        <div id="history-overlay">
-            <div id="history-list"></div>
-            <button id="clear-history">Clear</button>
-        </div>
     </main>
     <script src="app.js"></script>
 </body>

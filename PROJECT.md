@@ -30,7 +30,7 @@ Permanent project tracking document for the `main` branch.
 - **CSS Animations**: Hardware-accelerated transitions for smooth 60fps performance on mobile devices.
 
 ## 2. In Progress Work
-- GitHub repository creation and initial push.
+- (Completed)
 
 ## 3. Completed Work
 - [x] HTML/CSS/JS baseline implementation.
@@ -38,7 +38,14 @@ Permanent project tracking document for the `main` branch.
 - [x] Advanced Visuals: SVG circular progress, neon glowing indicators.
 - [x] Audio Engine & Haptic feedback.
 - [x] Selection history with localStorage persistence.
+- [x] **Desktop Integration**: Pointer (mouse) support, manual start/reset buttons.
+- [x] **UI Layout Optimization**: Top-aligned history and mode toggle integration.
 - [x] Project metadata and license.
 
 ## 4. Issues and Out of Scope
-None yet.
+### 4a) Current Backlog (Tracked via GitHub Issues)
+- Issue #1: Customizable UI Themes and Soundscapes
+- Issue #2: Teams Mode
+- Issue #3: Support for multiple languages
+- Issue #4: Roll a Die Mode
+- Issue #7: Volume and Time Tweaks
