@@ -391,6 +391,10 @@ function handleMouseDown(e) {
 }
 
 function handleTouchStart(e) {
+    if (e.target.closest('#top-bar') || e.target.closest('#history-overlay') || e.target.closest('#desktop-controls') || e.target.closest('#settings-modal') || e.target.closest('#settings-btn')) {
+        return;
+    }
+
     AudioEngine.init();
     if (state.isSelected) resetGame();
     if (e.cancelable) e.preventDefault();
@@ -403,6 +407,10 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
+    if (e.target.closest('#top-bar') || e.target.closest('#history-overlay') || e.target.closest('#desktop-controls') || e.target.closest('#settings-modal') || e.target.closest('#settings-btn')) {
+        return;
+    }
+
     if (e.cancelable) e.preventDefault();
     if (state.isSelected) return;
 
@@ -419,6 +427,10 @@ function handleTouchMove(e) {
 }
 
 function handleTouchEnd(e) {
+    if (e.target.closest('#top-bar') || e.target.closest('#history-overlay') || e.target.closest('#desktop-controls') || e.target.closest('#settings-modal') || e.target.closest('#settings-btn')) {
+        return;
+    }
+
     if (e.cancelable) e.preventDefault();
 
     for (let i = 0; i < e.changedTouches.length; i++) {

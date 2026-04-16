@@ -43,6 +43,8 @@ body, html {
 
 #app {
     width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
     height: 100%;
     position: relative;
     display: flex;
@@ -210,10 +212,28 @@ body, html {
 
 #settings-btn {
     position: absolute;
-    top: 0px;
+    bottom: 20px;
     right: 20px;
-    font-size: 1.5rem;
-    pointer-events: auto;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+#settings-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
 }
 
 #settings-modal {
