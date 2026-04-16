@@ -3,6 +3,49 @@
  * Core Logic - Vanilla JS
  */
 
+const i18n = {
+    en: {
+        winner: 'Chosen',
+        order: 'Order',
+        die: 'Die',
+        clear: 'Clear',
+        desktopPrompt: 'Click to add players',
+        desktopWait: 'Add at least one more player',
+        desktopReady: 'Ready to start?',
+        mobilePrompt: 'Place fingers to start',
+        mobileWait: 'Waiting for more fingers...',
+        mobileReady: 'Hold steady...',
+        winText: 'Chosen!',
+        orderText: 'Turn Order Assigned!',
+        dieText: 'Dice Rolled!',
+        startBtn: 'Start',
+        resetBtn: 'Reset',
+        resetBoardBtn: 'Reset Board'
+    },
+    es: {
+        winner: 'Elegido',
+        order: 'Orden',
+        die: 'Dado',
+        clear: 'Borrar',
+        desktopPrompt: 'Haz clic para agregar jugadores',
+        desktopWait: 'Agrega un jugador más',
+        desktopReady: '¿Listo para empezar?',
+        mobilePrompt: 'Coloca los dedos',
+        mobileWait: 'Esperando más dedos...',
+        mobileReady: 'Mantenlo así...',
+        winText: '¡Elegido!',
+        orderText: '¡Turnos asignados!',
+        dieText: '¡Dados lanzados!',
+        startBtn: 'Empezar',
+        resetBtn: 'Reiniciar',
+        resetBoardBtn: 'Limpiar Tablero'
+    }
+};
+
+function t(key) {
+    return i18n[state.lang] ? (i18n[state.lang][key] || i18n['en'][key]) : i18n['en'][key];
+}
+
 const CONFIG = {
     COUNTDOWN_MS: 2500,
     MAX_TOUCHES: 6,
@@ -78,7 +121,8 @@ const state = {
     mode: 'winner', // 'winner' or 'order'
     isDesktop: window.matchMedia('(pointer: fine)').matches,
     volume: parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
-    isMuted: localStorage.getItem('chooseWhoMuted') === 'true'
+    isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
+    lang: localStorage.getItem('chooseWhoLang') || 'en'
 };
 
 const dom = {
@@ -93,7 +137,8 @@ const dom = {
     startBtn: document.getElementById('start-btn'),
     resetBoardBtn: document.getElementById('reset-board-btn'),
     volumeSlider: document.getElementById('volume-slider'),
-    muteBtn: document.getElementById('mute-btn')
+    muteBtn: document.getElementById('mute-btn'),
+    langSelect: document.getElementById('lang-select')
 };
 
 function init() {
@@ -164,8 +209,32 @@ function init() {
         });
         updateVolumeUI();
     }
+    if (dom.langSelect) {
+        dom.langSelect.value = state.lang;
+        dom.langSelect.addEventListener('change', (e) => {
+            state.lang = e.target.value;
+            localStorage.setItem('chooseWhoLang', state.lang);
+            updateUILanguage();
+        });
+    }
 
+    updateUILanguage();
     updateHistoryUI();
+}
+
+function updateUILanguage() {
+    document.documentElement.lang = state.lang;
+    document.querySelector('.mode-btn[data-mode="winner"]').textContent = t('winner');
+    document.querySelector('.mode-btn[data-mode="order"]').textContent = t('order');
+    document.querySelector('.mode-btn[data-mode="die"]').textContent = t('die');
+    dom.clearHistoryBtn.textContent = t('clear');
+    if (state.isDesktop) {
+        if (!state.isSelected && !state.isCounting) {
+            dom.startBtn.textContent = t('startBtn');
+            dom.resetBoardBtn.textContent = state.touches.size > 0 ? t('resetBoardBtn') : t('resetBtn');
+        }
+    }
+    updateStatus();
 }
 
 function updateVolumeUI() {
@@ -314,24 +383,24 @@ function handleTouchEnd(e) {
 function updateStatus() {
     if (state.isDesktop) {
         if (state.touches.size === 0) {
-            dom.statusText.textContent = 'Click to add players';
+            dom.statusText.textContent = t('desktopPrompt');
             dom.statusText.style.opacity = '0.6';
         } else if (state.touches.size === 1) {
-            dom.statusText.textContent = 'Add at least one more player';
+            dom.statusText.textContent = t('desktopWait');
             dom.statusText.style.opacity = '0.8';
         } else {
-            dom.statusText.textContent = 'Ready to start?';
+            dom.statusText.textContent = t('desktopReady');
             dom.statusText.style.opacity = '1';
         }
     } else {
         if (state.touches.size === 0) {
-            dom.statusText.textContent = 'Place fingers to start';
+            dom.statusText.textContent = t('mobilePrompt');
             dom.statusText.style.opacity = '0.6';
         } else if (state.touches.size === 1) {
-            dom.statusText.textContent = 'Waiting for more fingers...';
+            dom.statusText.textContent = t('mobileWait');
             dom.statusText.style.opacity = '0.8';
         } else {
-            dom.statusText.textContent = 'Hold steady...';
+            dom.statusText.textContent = t('mobileReady');
             dom.statusText.style.opacity = '1';
         }
     }
@@ -380,7 +449,7 @@ function selectWinner() {
 
     state.isSelected = true;
     state.isCounting = false;
-    dom.statusText.textContent = state.mode === 'winner' ? 'Chosen!' : (state.mode === 'order' ? 'Turn Order Assigned!' : 'Dice Rolled!');
+    dom.statusText.textContent = state.mode === 'winner' ? t('winText') : (state.mode === 'order' ? t('orderText') : t('dieText'));
 
     const identifiers = Array.from(state.touches.keys());
     let winnerId;
@@ -446,7 +515,7 @@ function selectWinner() {
     if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
 
     if (state.isDesktop) {
-        dom.resetBoardBtn.textContent = 'Reset Board';
+        dom.resetBoardBtn.textContent = t('resetBoardBtn');
         dom.resetBoardBtn.classList.remove('hidden');
     }
 }
@@ -466,7 +535,7 @@ function resetGame() {
     if (state.isDesktop) {
         dom.startBtn.classList.remove('hidden');
         dom.resetBoardBtn.classList.remove('hidden');
-        dom.resetBoardBtn.textContent = 'Reset';
+        dom.resetBoardBtn.textContent = t('resetBtn');
     }
     
     updateStatus();

@@ -173,6 +173,31 @@ body, html {
     box-shadow: 0 0 10px #00f2ff;
 }
 
+#lang-toggle {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#lang-select {
+    background: transparent;
+    color: white;
+    border: none;
+    font-family: var(--font-family);
+    font-weight: 700;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+#lang-select option {
+    background: #111;
+    color: white;
+}
+
 /* History overlay */
 #history-overlay {
     background: rgba(255, 255, 255, 0.03);
