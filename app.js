@@ -546,7 +546,7 @@ function createIndicator(clientX, clientY, identifier) {
     element.innerHTML = `
         <svg class="shape-svg" viewBox="0 0 120 120">
             ${getShapeSVG(order)}
-            <circle class="timer-circle" cx="60" cy="60" r="57"></circle>
+            <circle class="timer-circle" cx="60" cy="60" r="57" style="transition-duration: ${state.timerDuration}s;"></circle>
         </svg>
         <div class="rank-text"></div>
     `;
@@ -766,6 +766,7 @@ function selectWinner() {
 }
 
 async function runEliminationSequence() {
+    state.isSelected = true; // Lock touches out of manual removal
     dom.statusText.textContent = 'ELIMINATING...';
     
     const identifiers = Array.from(state.touches.keys());
@@ -776,6 +777,8 @@ async function runEliminationSequence() {
     const survivorId = shuffled[shuffled.length - 1];
 
     for (const id of toEliminate) {
+        if (!state.isSelected) return; // Abort if game was reset
+        
         const data = state.touches.get(id);
         if (data) {
             data.element.classList.remove('counting');
@@ -783,7 +786,6 @@ async function runEliminationSequence() {
             if (data.gridCell) {
                 // Persistent 'out' state for elimination
                 data.gridCell.classList.add('unavailable');
-                // data.gridCell.classList.remove('occupied'); // Keep occupied so others can't take it? No, unavailable is enough.
             }
             AudioEngine.playExplosion();
             if (navigator.vibrate) navigator.vibrate(50);
@@ -791,8 +793,9 @@ async function runEliminationSequence() {
         }
     }
 
+    if (!state.isSelected) return; // Check one last time before finalization
+
     // Finalize with the survivor
-    state.isSelected = true;
     state.isCounting = false;
     dom.statusText.textContent = 'THE LAST ONE!';
     
