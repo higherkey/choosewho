@@ -583,7 +583,9 @@ function removeIndicator(identifier) {
     const data = state.touches.get(identifier);
     if (data) {
         data.element.classList.remove('active');
-        if (data.gridCell) data.gridCell.classList.remove('occupied');
+        if (data.gridCell) {
+            data.gridCell.classList.remove('occupied');
+        }
         setTimeout(() => {
             if (data.element.parentNode) data.element.remove();
         }, 200);
@@ -908,9 +910,23 @@ function resetGame() {
     
     state.isSelected = false;
     state.isCounting = false;
-    state.colorAvailability = [true, true, true, true, true, true];
-    dom.overlay.innerHTML = '';
+    
+    // Clear grid states
+    document.querySelectorAll('.grid-cell').forEach(cell => {
+        cell.classList.remove('occupied');
+        // Clear unavailable if we are in Winner mode OR if the previous game was officially 'finished'
+        if (state.selectionTarget === 'first' || state.isSelected) {
+            cell.classList.remove('unavailable');
+        }
+    });
+
+    // Clear indicators
+    state.touches.forEach((data) => {
+        data.element.remove();
+    });
+    
     state.touches.clear();
+    state.colorAvailability = new Array(CONFIG.MAX_TOUCHES).fill(true);
     
     if (state.isDesktop) {
         dom.startBtn.classList.remove('hidden');
@@ -919,6 +935,7 @@ function resetGame() {
     }
     
     updateStatus();
+    updateHistoryUI();
 }
 
 init();
