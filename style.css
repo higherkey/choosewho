@@ -553,10 +553,9 @@ body, html {
 
 /* Desktop Controls */
 #desktop-controls {
-    margin-top: 30px;
     display: flex;
-    gap: 20px;
-    justify-content: center;
+    gap: 10px;
+    justify-content: flex-start;
     transition: all 0.5s ease;
     pointer-events: auto;
 }
@@ -566,12 +565,12 @@ body, html {
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--text-color);
     font-family: var(--font-family);
-    font-size: 1rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.15rem;
-    padding: 15px 40px;
-    border-radius: 30px;
+    letter-spacing: 0.1rem;
+    padding: 8px 16px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     backdrop-filter: blur(5px);
@@ -579,9 +578,9 @@ body, html {
 
 .control-btn:hover {
     background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-5px) scale(1.05);
+    transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
 
 #start-btn {
@@ -664,9 +663,8 @@ body, html {
     fill: none;
     stroke: currentColor;
     stroke-width: 4;
-    stroke-dasharray: 358; /* 2 * PI * 57 */
     stroke-dashoffset: 358;
-    transition: stroke-dashoffset 3s linear;
+    transition: stroke-dashoffset linear; /* Speed handled in JS */
     opacity: 0.3;
 }
 

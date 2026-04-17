@@ -29,14 +29,13 @@
                         <span class="symbol first-symbol">| &lt;</span>
                         <span class="symbol last-symbol hidden">&gt; |</span>
                     </button>
-                    <button id="grid-toggle" class="sub-btn" title="Toggle Grid Mode">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
                     </button>
+                </div>
+                
+                <div id="desktop-controls" class="hidden">
+                    <button id="start-btn" class="control-btn">Start</button>
+                    <button id="reset-board-btn" class="control-btn">Reset</button>
                 </div>
             </div>
 
@@ -108,10 +107,6 @@
         <div id="ui-overlay">
             <h1 id="status-text">Place fingers to start</h1>
             <div id="countdown-timer" class="hidden"></div>
-            <div id="desktop-controls" class="hidden">
-                <button id="start-btn" class="control-btn">Start</button>
-                <button id="reset-board-btn" class="control-btn hidden">Reset</button>
-            </div>
         </div>
 
         <button id="settings-btn">

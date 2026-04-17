@@ -530,8 +530,11 @@ function createIndicator(clientX, clientY, identifier) {
         cell.classList.add('occupied');
     }
 
-    const colorIndex = state.colorAvailability.findIndex(available => available);
-    if (colorIndex === -1) return null;
+    const colorIndex = state.interactionMode === 'grid' && gridCell 
+        ? parseInt(gridCell.dataset.index) 
+        : state.colorAvailability.findIndex(available => available);
+
+    if (colorIndex === -1 || colorIndex === undefined) return null;
 
     state.colorAvailability[colorIndex] = false;
     const order = state.touches.size + 1;
@@ -546,7 +549,7 @@ function createIndicator(clientX, clientY, identifier) {
     element.innerHTML = `
         <svg class="shape-svg" viewBox="0 0 120 120">
             ${getShapeSVG(order)}
-            <circle class="timer-circle" cx="60" cy="60" r="57"></circle>
+            <circle class="timer-circle" cx="60" cy="60" r="57" style="transition-duration: ${state.timerDuration}s;"></circle>
         </svg>
         <div class="rank-text"></div>
     `;
@@ -764,6 +767,7 @@ function selectWinner() {
 }
 
 async function runEliminationSequence() {
+    state.isSelected = true; // Lock the session immediately to prevent race conditions
     dom.statusText.textContent = 'ELIMINATING...';
     
     const identifiers = Array.from(state.touches.keys());
@@ -908,10 +912,15 @@ function resetGame() {
     
     state.isSelected = false;
     state.isCounting = false;
-    state.colorAvailability = [true, true, true, true, true, true];
+    state.colorAvailability = new Array(CONFIG.MAX_TOUCHES).fill(true);
     dom.overlay.innerHTML = '';
     state.touches.clear();
     
+    // Clear all grid states
+    document.querySelectorAll('.grid-cell').forEach(cell => {
+        cell.classList.remove('occupied', 'unavailable');
+    });
+
     if (state.isDesktop) {
         dom.startBtn.classList.remove('hidden');
         dom.resetBoardBtn.classList.remove('hidden');
