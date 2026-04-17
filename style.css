@@ -55,6 +55,33 @@ body.theme-mono {
     --color-8: #ffffff;
 }
 
+body.theme-cyber .grid-cell {
+    background: linear-gradient(180deg, transparent 95%, rgba(0, 242, 255, 0.05) 95%),
+                linear-gradient(90deg, transparent 95%, rgba(0, 242, 255, 0.05) 95%);
+    background-size: 20px 20px;
+}
+
+body.theme-cyber #status-text {
+    text-shadow: 2px 0 var(--color-1), -2px 0 var(--color-2);
+    animation: cyber-glitch 2s infinite linear alternate-reverse;
+}
+
+@keyframes cyber-glitch {
+    from { transform: skew(0.5deg); }
+    to { transform: skew(-0.5deg); }
+}
+
+body.theme-mono .finger-indicator {
+    border-radius: 4px;
+    border: 2px solid white;
+    box-shadow: inset 0 0 0 4px black, inset 0 0 0 6px white;
+}
+
+body.theme-mono .grid-cell {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: black;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -415,7 +442,32 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    overflow: hidden;
 }
+
+.grid-cell::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 20%;
+    background: currentColor;
+    border-radius: 50%;
+    opacity: 0.1;
+    filter: blur(20px);
+}
+
+.grid-cell.indicator-0 { color: var(--color-1); }
+.grid-cell.indicator-1 { color: var(--color-2); }
+.grid-cell.indicator-2 { color: var(--color-3); }
+.grid-cell.indicator-3 { color: var(--color-4); }
+.grid-cell.indicator-4 { color: var(--color-5); }
+.grid-cell.indicator-5 { color: var(--color-6); }
+.grid-cell.indicator-6 { color: var(--color-7); }
+.grid-cell.indicator-7 { color: var(--color-8); }
 
 .grid-cell.occupied {
     background: rgba(255, 255, 255, 0.1);
@@ -648,9 +700,13 @@ body.theme-mono #top-bar, body.theme-mono #history-overlay {
 }
 
 .finger-indicator.lost {
-    opacity: 0.1;
-    transform: translate(-50%, -50%) scale(0.8);
-    filter: grayscale(1);
+    animation: lost-burst 0.5s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+@keyframes lost-burst {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    30% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; filter: brightness(2); }
+    100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; filter: blur(10px); }
 }
 
 .finger-indicator.winner {
