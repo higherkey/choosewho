@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ChooseWho - First Player Selector</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <meta name="description" content="A premium mobile-first finger selector to determine the first player in board games.">
     <!-- Google Fonts for premium typography -->
@@ -101,6 +104,10 @@
                         </select>
                     </div>
                 </div>
+                <div class="settings-row" id="install-row" style="display: none;">
+                    <label>Install App</label>
+                    <button id="install-app-btn" class="control-btn" style="padding: 5px 15px; font-size: 0.8rem; flex-grow: 0; min-width: auto; background: var(--color-3); color: black;">Install</button>
+                </div>
             </div>
         </div>
 
@@ -121,6 +128,15 @@
             </svg>
         </button>
     </main>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW registered!', reg);
+                }).catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

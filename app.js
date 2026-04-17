@@ -305,6 +305,28 @@ function init() {
         updateVolumeUI();
     }
 
+    // PWA Install Button
+    const installAppBtn = document.getElementById('install-app-btn');
+    if (installAppBtn) {
+        installAppBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (window.deferredPrompt) {
+                window.deferredPrompt.prompt();
+                const { outcome } = await window.deferredPrompt.userChoice;
+                window.deferredPrompt = null;
+                document.getElementById('install-row').style.display = 'none';
+            }
+        });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // We will NOT prevent default, allowing the standard browser infobar
+        // but we will also show our custom button
+        window.deferredPrompt = e;
+        const installRow = document.getElementById('install-row');
+        if (installRow) installRow.style.display = 'flex';
+    });
+
     // Timer Slider
     const timerSlider = document.getElementById('timer-slider');
     const timerValueDisplay = document.getElementById('timer-value');
