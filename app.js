@@ -43,6 +43,48 @@ const i18n = {
         startBtn: 'Empezar',
         resetBtn: 'Reiniciar',
         resetBoardBtn: 'Limpiar Tablero'
+    },
+    fr: {
+        winner: 'Choisi', order: 'Ordre', die: 'Dé', teams: 'Équipes', clear: 'Effacer',
+        desktopPrompt: 'Cliquez pour ajouter', desktopWait: 'Ajoutez un joueur', desktopReady: 'Prêt ?',
+        mobilePrompt: 'Posez vos doigts', mobileWait: 'Attente...', mobileReady: 'Ne bougez plus...',
+        winText: 'Choisi !', orderText: 'Ordre assigné !', dieText: 'Dés lancés !', teamsText: 'Équipes assignées !',
+        startBtn: 'Démarrer', resetBtn: 'Réinitialiser', resetBoardBtn: 'Réinitialiser'
+    },
+    de: {
+        winner: 'Gewählt', order: 'Reihenfolge', die: 'Würfel', teams: 'Teams', clear: 'Löschen',
+        desktopPrompt: 'Klicken zum Hinzufügen', desktopWait: 'Noch ein Spieler', desktopReady: 'Bereit?',
+        mobilePrompt: 'Finger platzieren', mobileWait: 'Warten...', mobileReady: 'Stillhalten...',
+        winText: 'Gewählt!', orderText: 'Reihenfolge festgelegt!', dieText: 'Gewürfelt!', teamsText: 'Teams zugewiesen!',
+        startBtn: 'Start', resetBtn: 'Zurücksetzen', resetBoardBtn: 'Brett zurücksetzen'
+    },
+    it: {
+        winner: 'Scelto', order: 'Ordine', die: 'Dado', teams: 'Squadre', clear: 'Cancella',
+        desktopPrompt: 'Clicca per aggiungere', desktopWait: 'Aggiungi un giocatore', desktopReady: 'Pronto?',
+        mobilePrompt: 'Posiziona le dita', mobileWait: 'In attesa...', mobileReady: 'Resta fermo...',
+        winText: 'Scelto!', orderText: 'Ordine assegnato!', dieText: 'Dadi lanciati!', teamsText: 'Squadre assegnate!',
+        startBtn: 'Inizia', resetBtn: 'Ripristina', resetBoardBtn: 'Ripristina'
+    },
+    zh: {
+        winner: '已选中', order: '顺序', die: '骰子', teams: '分队', clear: '清除',
+        desktopPrompt: '点击添加玩家', desktopWait: '再添加一名玩家', desktopReady: '准备好了吗？',
+        mobilePrompt: '放置手指开始', mobileWait: '等待更多手指...', mobileReady: '保持稳定...',
+        winText: '已选中！', orderText: '顺序已分配！', dieText: '骰子已掷！', teamsText: '分队已完成！',
+        startBtn: '开始', resetBtn: '重置', resetBoardBtn: '重置面板'
+    },
+    ja: {
+        winner: '選ばれました', order: '順番', die: 'サイコロ', teams: 'チーム', clear: 'クリア',
+        desktopPrompt: 'クリックしてプレイヤーを追加', desktopWait: 'もう一人追加してください', desktopReady: '準備はいいですか？',
+        mobilePrompt: '指を置いて開始', mobileWait: '待機中...', mobileReady: 'そのまま...',
+        winText: '選ばれました！', orderText: '順番が決定しました！', dieText: 'サイコロを振りました！', teamsText: 'チームが決定しました！',
+        startBtn: 'スタート', resetBtn: 'リセット', resetBoardBtn: 'リセット'
+    },
+    ko: {
+        winner: '선택됨', order: '순서', die: '주사위', teams: '팀', clear: '초기화',
+        desktopPrompt: '클릭하여 플레이어 추가', desktopWait: '한 명 더 추가하세요', desktopReady: '준비되셨나요?',
+        mobilePrompt: '손가락을 올려 시작하세요', mobileWait: '기다리는 중...', mobileReady: '움직이지 마세요...',
+        winText: '선택됨!', orderText: '순서가 지정되었습니다!', dieText: '주사위가 던져졌습니다!', teamsText: '팀이 배정되었습니다!',
+        startBtn: '시작', resetBtn: '초기화', resetBoardBtn: '보드 초기화'
     }
 };
 
@@ -100,14 +142,29 @@ const AudioEngine = {
     },
 
     playTouch() {
-        const isRetro = typeof state !== 'undefined' && state.theme === 'retro';
-        this.playTone(isRetro ? 150 : 200, isRetro ? 'square' : 'sine', 0.1, 0.05);
+        if (state.theme === 'retro') {
+            this.playTone(150, 'square', 0.1, 0.05);
+        } else if (state.theme === 'cyber') {
+            this.playTone(300, 'sawtooth', 0.05, 0.03);
+            setTimeout(() => this.playTone(150, 'sawtooth', 0.05, 0.02), 30);
+        } else if (state.theme === 'mono') {
+            this.playTone(1000, 'square', 0.01, 0.02);
+        } else {
+            this.playTone(200, 'sine', 0.1, 0.05);
+        }
     },
 
     playTick() {
-        const isRetro = typeof state !== 'undefined' && state.theme === 'retro';
-        this.playTone(isRetro ? 300 : 400, isRetro ? 'square' : 'sine', 0.05, 0.03);
-        // Haptic pulse synchronized with tick
+        if (state.theme === 'retro') {
+            this.playTone(300, 'square', 0.05, 0.03);
+        } else if (state.theme === 'cyber') {
+            this.playTone(600, 'sawtooth', 0.02, 0.02);
+        } else if (state.theme === 'mono') {
+            this.playTone(1200, 'square', 0.005, 0.02);
+        } else {
+            this.playTone(400, 'sine', 0.05, 0.03);
+        }
+        
         if (navigator.vibrate) {
             navigator.vibrate(10);
         }
@@ -165,6 +222,7 @@ const state = {
     mode: 'winner', // 'winner' | 'order' | 'die' | 'teams'
     interactionMode: 'free', // 'free' | 'grid'
     selectionTarget: 'first', // 'first' | 'last'
+    timerDuration: parseFloat(localStorage.getItem('chooseWhoTimer') ?? '2.0'),
     isDesktop: window.matchMedia('(pointer: fine)').matches,
     volume: parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
     isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
@@ -245,6 +303,20 @@ function init() {
             updateVolumeUI();
         });
         updateVolumeUI();
+    }
+
+    // Timer Slider
+    const timerSlider = document.getElementById('timer-slider');
+    const timerValueDisplay = document.getElementById('timer-value');
+    if (timerSlider && timerValueDisplay) {
+        timerSlider.value = state.timerDuration;
+        timerValueDisplay.textContent = `${state.timerDuration.toFixed(1)}s`;
+        timerSlider.addEventListener('input', (e) => {
+            state.timerDuration = parseFloat(e.target.value);
+            timerValueDisplay.textContent = `${state.timerDuration.toFixed(1)}s`;
+            localStorage.setItem('chooseWhoTimer', state.timerDuration);
+            AudioEngine.playTick();
+        });
     }
 
     // Language
@@ -377,7 +449,7 @@ function generateGrid() {
     
     for (let i = 0; i < size; i++) {
         const cell = document.createElement('div');
-        cell.className = 'grid-cell';
+        cell.className = `grid-cell indicator-${i}`;
         cell.dataset.index = i;
         dom.gridContainer.appendChild(cell);
     }
@@ -576,8 +648,24 @@ function handleTouchMove(e) {
         const data = state.touches.get(touch.identifier);
         if (data) {
             const coords = getAppCoordinates(touch.clientX, touch.clientY);
-            data.x = coords.x;
-            data.y = coords.y;
+            
+            if (state.interactionMode === 'grid' && data.gridCell) {
+                const rect = data.gridCell.getBoundingClientRect();
+                const appRect = dom.app.getBoundingClientRect();
+                
+                // Clamp coordinates to the grid cell bounds (relative to app container)
+                const minX = rect.left - appRect.left;
+                const maxX = rect.right - appRect.left;
+                const minY = rect.top - appRect.top;
+                const maxY = rect.bottom - appRect.top;
+                
+                data.x = Math.max(minX, Math.min(coords.x, maxX));
+                data.y = Math.max(minY, Math.min(coords.y, maxY));
+            } else {
+                data.x = coords.x;
+                data.y = coords.y;
+            }
+
             data.element.style.left = `${data.x}px`;
             data.element.style.top = `${data.y}px`;
         }
@@ -654,7 +742,7 @@ function startTimer() {
 
     AudioEngine.playTick();
     state.tickInterval = setInterval(() => AudioEngine.playTick(), 1000);
-    state.timerId = setTimeout(selectWinner, CONFIG.COUNTDOWN_MS);
+    state.timerId = setTimeout(selectWinner, state.timerDuration * 1000);
 
     if (state.isDesktop) {
         dom.startBtn.classList.add('hidden');
@@ -691,8 +779,9 @@ async function runEliminationSequence() {
             data.element.classList.remove('counting');
             data.element.classList.add('exploding');
             if (data.gridCell) {
+                // Persistent 'out' state for elimination
                 data.gridCell.classList.add('unavailable');
-                data.gridCell.classList.remove('occupied');
+                // data.gridCell.classList.remove('occupied'); // Keep occupied so others can't take it? No, unavailable is enough.
             }
             AudioEngine.playExplosion();
             if (navigator.vibrate) navigator.vibrate(50);
