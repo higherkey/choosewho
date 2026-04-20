@@ -152,6 +152,21 @@ body, html {
     align-items: center;
 }
 
+@media (max-width: 500px) {
+    #mode-nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    #top-bar {
+        padding: 0 15px;
+    }
+    #grid-container {
+        top: 120px !important;
+        height: calc(100% - 120px) !important;
+    }
+}
+
 #mode-toggle {
     display: flex;
     background: rgba(255, 255, 255, 0.03);
