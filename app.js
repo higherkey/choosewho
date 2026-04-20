@@ -244,6 +244,7 @@ const dom = {
     modeBtns: document.querySelectorAll('.mode-btn'),
     targetToggle: document.getElementById('target-toggle'),
     gridToggle: document.getElementById('grid-toggle'),
+    gridResetBtn: document.getElementById('grid-reset-btn'),
     gridContainer: document.getElementById('grid-container'),
     clearHistoryBtn: document.getElementById('clear-history'),
     desktopControls: document.getElementById('desktop-controls'),
@@ -414,6 +415,14 @@ function init() {
         });
     }
 
+    if (dom.gridResetBtn) {
+        dom.gridResetBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetGame(true);
+            AudioEngine.playTick();
+        });
+    }
+
     if (dom.historyBtn) {
         dom.historyBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -429,6 +438,7 @@ function init() {
 function toggleInteractionMode(mode) {
     state.interactionMode = mode;
     dom.gridToggle.classList.toggle('active', mode === 'grid');
+    if (dom.gridResetBtn) dom.gridResetBtn.classList.toggle('hidden', mode !== 'grid');
     dom.gridContainer.classList.toggle('hidden', mode !== 'grid');
     if (mode === 'grid') {
         generateGrid();
@@ -530,8 +540,11 @@ function createIndicator(clientX, clientY, identifier) {
         cell.classList.add('occupied');
     }
 
-    const colorIndex = state.colorAvailability.findIndex(available => available);
-    if (colorIndex === -1) return null;
+    const colorIndex = state.interactionMode === 'grid' && gridCell 
+        ? parseInt(gridCell.dataset.index) 
+        : state.colorAvailability.findIndex(available => available);
+
+    if (colorIndex === -1 || colorIndex === undefined) return null;
 
     state.colorAvailability[colorIndex] = false;
     const order = state.touches.size + 1;
@@ -546,7 +559,7 @@ function createIndicator(clientX, clientY, identifier) {
     element.innerHTML = `
         <svg class="shape-svg" viewBox="0 0 120 120">
             ${getShapeSVG(order)}
-            <circle class="timer-circle" cx="60" cy="60" r="57"></circle>
+            <circle class="timer-circle" cx="60" cy="60" r="57" style="transition-duration: ${state.timerDuration}s;"></circle>
         </svg>
         <div class="rank-text"></div>
     `;
@@ -764,44 +777,59 @@ function selectWinner() {
 }
 
 async function runEliminationSequence() {
+    state.isSelected = true; // Lock the session immediately to prevent race conditions
     dom.statusText.textContent = 'ELIMINATING...';
     
     const identifiers = Array.from(state.touches.keys());
-    const shuffled = [...identifiers].sort(() => Math.random() - 0.5);
     
-    // Eliminate all but one
-    const toEliminate = shuffled.slice(0, shuffled.length - 1);
-    const survivorId = shuffled[shuffled.length - 1];
+    // Pick exactly ONE to eliminate this round
+    const eliminatedId = identifiers[Math.floor(Math.random() * identifiers.length)];
 
-    for (const id of toEliminate) {
-        const data = state.touches.get(id);
-        if (data) {
-            data.element.classList.remove('counting');
-            data.element.classList.add('exploding');
-            if (data.gridCell) {
-                // Persistent 'out' state for elimination
-                data.gridCell.classList.add('unavailable');
-                // data.gridCell.classList.remove('occupied'); // Keep occupied so others can't take it? No, unavailable is enough.
-            }
-            AudioEngine.playExplosion();
-            if (navigator.vibrate) navigator.vibrate(50);
-            await new Promise(r => setTimeout(r, 600));
+    const data = state.touches.get(eliminatedId);
+    if (data) {
+        data.element.classList.remove('counting');
+        data.element.classList.add('exploding');
+        if (data.gridCell) {
+            // Persistent 'out' state for elimination
+            data.gridCell.classList.add('unavailable');
         }
+        AudioEngine.playExplosion();
+        if (navigator.vibrate) navigator.vibrate(50);
+        await new Promise(r => setTimeout(r, 600));
     }
 
-    // Finalize with the survivor
+    // Mark others as safe (winner styling is used for safe players)
+    state.touches.forEach((d, id) => {
+        if (id !== eliminatedId) {
+            d.element.classList.remove('counting');
+            d.element.classList.add('winner');
+        }
+    });
+
     state.isSelected = true;
     state.isCounting = false;
-    dom.statusText.textContent = 'THE LAST ONE!';
     
-    const survivorData = state.touches.get(survivorId);
-    if (survivorData) {
-        survivorData.element.classList.remove('counting');
-        survivorData.element.classList.add('winner');
-        logHistory(survivorData.colorIndex);
+    let remainingGridCount = 0;
+    if (state.interactionMode === 'grid') {
+        remainingGridCount = document.querySelectorAll('.grid-cell:not(.unavailable)').length;
     }
     
-    AudioEngine.playWin();
+    if (state.interactionMode === 'grid' && remainingGridCount === 1) {
+        dom.statusText.textContent = 'SURVIVOR!';
+        const survivorCell = document.querySelector('.grid-cell:not(.unavailable)');
+        if (survivorCell) {
+            logHistory(parseInt(survivorCell.dataset.index));
+        }
+        AudioEngine.playWin();
+    } else {
+        dom.statusText.textContent = 'ELIMINATED!';
+        AudioEngine.playTick(); // End of round sound
+    }
+    
+    if (state.isDesktop) {
+        dom.resetBoardBtn.textContent = 'Next Round';
+        dom.resetBoardBtn.classList.remove('hidden');
+    }
 }
 
 function finalizeSelection() {
@@ -900,7 +928,7 @@ function logHistory(colorIndex) {
     updateHistoryUI();
 }
 
-function resetGame() {
+function resetGame(fullReset = false) {
     if (state.tickInterval) clearInterval(state.tickInterval);
     if (state.timerId) clearTimeout(state.timerId);
     state.tickInterval = null;
@@ -908,14 +936,26 @@ function resetGame() {
     
     state.isSelected = false;
     state.isCounting = false;
-    state.colorAvailability = [true, true, true, true, true, true];
+    
     dom.overlay.innerHTML = '';
     state.touches.clear();
     
+    if (fullReset || state.interactionMode !== 'grid') {
+        state.colorAvailability = new Array(CONFIG.MAX_TOUCHES).fill(true);
+        document.querySelectorAll('.grid-cell').forEach(cell => {
+            cell.classList.remove('occupied', 'unavailable');
+        });
+    } else {
+        // Round-by-round reset: clear 'occupied' so next round can start, but leave 'unavailable' intact
+        document.querySelectorAll('.grid-cell').forEach(cell => {
+            cell.classList.remove('occupied');
+        });
+    }
+
     if (state.isDesktop) {
         dom.startBtn.classList.remove('hidden');
         dom.resetBoardBtn.classList.remove('hidden');
-        dom.resetBoardBtn.textContent = t('resetBtn');
+        dom.resetBoardBtn.textContent = fullReset ? t('resetBtn') : 'Next Round';
     }
     
     updateStatus();

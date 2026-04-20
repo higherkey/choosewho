@@ -37,7 +37,17 @@
                             <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
                     </button>
+                    <button id="grid-reset-btn" class="sub-btn hidden" title="Clear Grid">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                            <path d="M21 2v6h-6"></path>
+                            <path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path>
+                        </svg>
+                    </button>
                 </div>
+            </div>
+            <div id="desktop-controls" class="hidden" style="display: flex; flex-direction: column; gap: 8px; position: absolute; top: 60px; left: 20px; align-items: flex-start;">
+                <button id="start-btn" class="control-btn" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px;">Start</button>
+                <button id="reset-board-btn" class="control-btn" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px;">Reset</button>
             </div>
 
             <div id="history-container">
@@ -108,10 +118,6 @@
         <div id="ui-overlay">
             <h1 id="status-text">Place fingers to start</h1>
             <div id="countdown-timer" class="hidden"></div>
-            <div id="desktop-controls" class="hidden">
-                <button id="start-btn" class="control-btn">Start</button>
-                <button id="reset-board-btn" class="control-btn hidden">Reset</button>
-            </div>
         </div>
 
         <button id="settings-btn">
