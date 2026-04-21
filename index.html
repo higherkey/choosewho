@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ChooseWho - First Player Selector</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="assets/icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <meta name="description" content="A premium mobile-first finger selector to determine the first player in board games.">
     <!-- Google Fonts for premium typography -->
@@ -72,14 +75,14 @@
                     <button id="close-settings-btn" class="icon-btn">✖</button>
                 </div>
                 <div class="settings-row">
-                    <label>Volume</label>
+                    <label for="volume-slider">Volume</label>
                     <div id="volume-toggle">
                         <button id="mute-btn" class="icon-btn">🔊</button>
                         <input type="range" id="volume-slider" min="0" max="100" value="50">
                     </div>
                 </div>
                 <div class="settings-row">
-                    <label>Language</label>
+                    <label for="lang-select">Language</label>
                     <div id="lang-toggle">
                         <select id="lang-select">
                             <option value="en">English</option>
@@ -94,14 +97,14 @@
                     </div>
                 </div>
                 <div class="settings-row">
-                    <label>Timer</label>
+                    <label for="timer-slider">Timer</label>
                     <div id="timer-setting">
                         <input type="range" id="timer-slider" min="1" max="3" step="0.5" value="2">
                         <span id="timer-value">2.0s</span>
                     </div>
                 </div>
                 <div class="settings-row">
-                    <label>Theme</label>
+                    <label for="theme-select">Theme</label>
                     <div id="theme-toggle">
                         <select id="theme-select">
                             <option value="neon">Neon</option>
@@ -110,6 +113,10 @@
                             <option value="mono">Mono</option>
                         </select>
                     </div>
+                </div>
+                <div class="settings-row" id="install-row" style="display: none;">
+                    <label for="install-app-btn">Install App</label>
+                    <button id="install-app-btn" class="control-btn" style="padding: 5px 15px; font-size: 0.8rem; flex-grow: 0; min-width: auto; background: var(--color-3); color: black;">Install</button>
                 </div>
             </div>
         </div>
@@ -127,6 +134,15 @@
             </svg>
         </button>
     </main>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW registered!', reg);
+                }).catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

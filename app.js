@@ -306,6 +306,28 @@ function init() {
         updateVolumeUI();
     }
 
+    // PWA Install Button
+    const installAppBtn = document.getElementById('install-app-btn');
+    if (installAppBtn) {
+        installAppBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (globalThis.deferredPrompt) {
+                globalThis.deferredPrompt.prompt();
+                await globalThis.deferredPrompt.userChoice;
+                globalThis.deferredPrompt = null;
+                document.getElementById('install-row').style.display = 'none';
+            }
+        });
+    }
+
+    globalThis.addEventListener('beforeinstallprompt', (e) => {
+        // We will NOT prevent default, allowing the standard browser infobar
+        // but we will also show our custom button
+        globalThis.deferredPrompt = e;
+        const installRow = document.getElementById('install-row');
+        if (installRow) installRow.style.display = 'flex';
+    });
+
     // Timer Slider
     const timerSlider = document.getElementById('timer-slider');
     const timerValueDisplay = document.getElementById('timer-value');
@@ -616,7 +638,9 @@ function removeIndicator(identifier) {
     const data = state.touches.get(identifier);
     if (data) {
         data.element.classList.remove('active');
-        if (data.gridCell) data.gridCell.classList.remove('occupied');
+        if (data.gridCell) {
+            data.gridCell.classList.remove('occupied');
+        }
         setTimeout(() => {
             if (data.element.parentNode) data.element.remove();
         }, 200);
@@ -822,6 +846,8 @@ async function runEliminationSequence() {
         await new Promise(r => setTimeout(r, 600));
     }
 
+    if (!state.isSelected) return; // Check one last time before finalization
+
     // Mark others as safe (winner styling is used for safe players)
     state.touches.forEach((d, id) => {
         if (id !== eliminatedId) {
@@ -970,6 +996,7 @@ function resetGame(fullReset = false) {
     
     dom.overlay.innerHTML = '';
     state.touches.clear();
+    state.colorAvailability = new Array(CONFIG.MAX_TOUCHES).fill(true);
     
     if (fullReset || state.interactionMode !== 'grid') {
         state.colorAvailability = new Array(CONFIG.MAX_TOUCHES).fill(true);
@@ -990,6 +1017,7 @@ function resetGame(fullReset = false) {
     }
     
     updateStatus();
+    updateHistoryUI();
     highlightLastWinners();
 }
 

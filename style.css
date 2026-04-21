@@ -514,9 +514,17 @@ body, html {
 }
 
 .grid-cell.unavailable {
-    background: rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 0, 0, 0.2);
-    opacity: 0.3;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.4),
+        rgba(0, 0, 0, 0.4) 10px,
+        rgba(0, 0, 0, 0.5) 10px,
+        rgba(0, 0, 0, 0.5) 20px
+    );
+    border-color: rgba(255, 255, 255, 0.05);
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
 }
 
 /* History overlay */
