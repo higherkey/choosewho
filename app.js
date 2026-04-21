@@ -311,19 +311,19 @@ function init() {
     if (installAppBtn) {
         installAppBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (window.deferredPrompt) {
-                window.deferredPrompt.prompt();
-                const { outcome } = await window.deferredPrompt.userChoice;
-                window.deferredPrompt = null;
+            if (globalThis.deferredPrompt) {
+                globalThis.deferredPrompt.prompt();
+                await globalThis.deferredPrompt.userChoice;
+                globalThis.deferredPrompt = null;
                 document.getElementById('install-row').style.display = 'none';
             }
         });
     }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+    globalThis.addEventListener('beforeinstallprompt', (e) => {
         // We will NOT prevent default, allowing the standard browser infobar
         // but we will also show our custom button
-        window.deferredPrompt = e;
+        globalThis.deferredPrompt = e;
         const installRow = document.getElementById('install-row');
         if (installRow) installRow.style.display = 'flex';
     });

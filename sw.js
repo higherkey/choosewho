@@ -5,8 +5,8 @@ const ASSETS_TO_CACHE = [
   './style.css',
   './app.js',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './assets/icon-192.png',
+  './assets/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -15,7 +15,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  self.skipWaiting();
+  globalThis.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -28,7 +28,7 @@ self.addEventListener('activate', (event) => {
       }));
     })
   );
-  self.clients.claim();
+  globalThis.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
