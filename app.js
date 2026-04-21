@@ -112,7 +112,7 @@ const AudioEngine = {
     
     init() {
         if (!this.ctx) {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.ctx = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
         }
     },
 
@@ -121,8 +121,8 @@ const AudioEngine = {
         if (state.isMuted) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
 
-        const isNeon = typeof state !== 'undefined' && state.theme === 'neon';
-        const gainOffset = isNeon ? 1.5 : 1.0; // Boost Neon/Sine waves
+        const isNeon = state?.theme === 'neon';
+        const gainOffset = isNeon ? 1.5 : 1; // Boost Neon/Sine waves
         const finalVolume = volume * (state.volume * 2) * gainOffset;
 
         const osc = this.ctx.createOscillator();
@@ -171,7 +171,7 @@ const AudioEngine = {
     },
 
     playWin() {
-        const isRetro = typeof state !== 'undefined' && state.theme === 'retro';
+        const isRetro = state?.theme === 'retro';
         this.playTone(isRetro ? 330 : 440, isRetro ? 'sawtooth' : 'triangle', 0.5, 0.1);
         setTimeout(() => this.playTone(isRetro ? 494 : 660, isRetro ? 'sawtooth' : 'triangle', 0.6, 0.08), 100);
         setTimeout(() => this.playTone(isRetro ? 660 : 880, isRetro ? 'sawtooth' : 'triangle', 0.8, 0.06), 200);
@@ -222,9 +222,9 @@ const state = {
     mode: 'winner', // 'winner' | 'order' | 'die' | 'teams'
     interactionMode: 'free', // 'free' | 'grid'
     selectionTarget: 'first', // 'first' | 'last'
-    timerDuration: parseFloat(localStorage.getItem('chooseWhoTimer') ?? '2.0'),
-    isDesktop: window.matchMedia('(pointer: fine)').matches,
-    volume: parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
+    timerDuration: Number.parseFloat(localStorage.getItem('chooseWhoTimer') ?? '2.0'),
+    isDesktop: globalThis.matchMedia('(pointer: fine)').matches,
+    volume: Number.parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
     isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
     lang: localStorage.getItem('chooseWhoLang') || 'en',
     theme: localStorage.getItem('chooseWhoTheme') || 'neon'
@@ -288,7 +288,7 @@ function init() {
     // Volume Controls
     if (dom.volumeSlider && dom.muteBtn) {
         dom.volumeSlider.addEventListener('input', (e) => {
-            state.volume = parseInt(e.target.value) / 100;
+            state.volume = Number.parseInt(e.target.value) / 100;
             localStorage.setItem('chooseWhoVolume', state.volume);
             if (state.isMuted && state.volume > 0) {
                 state.isMuted = false;
@@ -313,7 +313,7 @@ function init() {
         timerSlider.value = state.timerDuration;
         timerValueDisplay.textContent = `${state.timerDuration.toFixed(1)}s`;
         timerSlider.addEventListener('input', (e) => {
-            state.timerDuration = parseFloat(e.target.value);
+            state.timerDuration = Number.parseFloat(e.target.value);
             timerValueDisplay.textContent = `${state.timerDuration.toFixed(1)}s`;
             localStorage.setItem('chooseWhoTimer', state.timerDuration);
             AudioEngine.playTick();
@@ -331,10 +331,10 @@ function init() {
     }
 
     // Touch Events
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd, { passive: false });
-    window.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    globalThis.addEventListener('touchstart', handleTouchStart, { passive: false });
+    globalThis.addEventListener('touchmove', handleTouchMove, { passive: false });
+    globalThis.addEventListener('touchend', handleTouchEnd, { passive: false });
+    globalThis.addEventListener('touchcancel', handleTouchEnd, { passive: false });
     
     // Settings Modal
     if (dom.settingsBtn && dom.settingsModal && dom.closeSettingsBtn) {
@@ -361,7 +361,7 @@ function init() {
 
     // Mouse Events for Desktop
     if (state.isDesktop) {
-        window.addEventListener('mousedown', handleMouseDown);
+        globalThis.addEventListener('mousedown', handleMouseDown);
         dom.startBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (state.touches.size >= 2) startTimer();
@@ -433,6 +433,7 @@ function init() {
 
     updateUILanguage();
     updateHistoryUI();
+    highlightLastWinners();
 }
 
 function toggleInteractionMode(mode) {
@@ -463,6 +464,7 @@ function generateGrid() {
         cell.dataset.index = i;
         dom.gridContainer.appendChild(cell);
     }
+    highlightLastWinners();
 }
 
 function updateUILanguage() {
@@ -508,10 +510,28 @@ function updateHistoryUI() {
     });
 }
 
+function highlightLastWinners() {
+    document.querySelectorAll('.grid-cell').forEach(cell => {
+        cell.classList.remove('last-winner');
+    });
+
+    if (state.interactionMode !== 'grid') return;
+
+    const modeHistory = state.history[state.mode] || [];
+    if (modeHistory.length === 0) return;
+
+    const lastWinnerIndex = modeHistory[modeHistory.length - 1];
+    const winnerCell = dom.gridContainer.querySelector(`.grid-cell.indicator-${lastWinnerIndex}`);
+    if (winnerCell) {
+        winnerCell.classList.add('last-winner');
+    }
+}
+
 function clearHistory() {
     state.history[state.mode] = [];
     localStorage.setItem('chooseWhoHistoryV2', JSON.stringify(state.history));
     updateHistoryUI();
+    highlightLastWinners();
 }
 
 function getAppCoordinates(clientX, clientY) {
@@ -541,8 +561,8 @@ function createIndicator(clientX, clientY, identifier) {
     }
 
     const colorIndex = state.interactionMode === 'grid' && gridCell 
-        ? parseInt(gridCell.dataset.index) 
-        : state.colorAvailability.findIndex(available => available);
+        ? Number.parseInt(gridCell.dataset.index) 
+        : state.colorAvailability.findIndex(Boolean);
 
     if (colorIndex === -1 || colorIndex === undefined) return null;
 
@@ -565,7 +585,7 @@ function createIndicator(clientX, clientY, identifier) {
     `;
 
     dom.overlay.appendChild(element);
-    void element.offsetWidth; // Force reflow
+    element.getBoundingClientRect(); // Force reflow
     element.classList.add('active');
 
     const touchData = { x: coords.x, y: coords.y, element, colorIndex, order, gridCell };
@@ -611,15 +631,21 @@ function handleMouseDown(e) {
         return;
     }
 
-    // Don't add indicators if clicking on existing ones (they will be removed instead)
-    if (e.target.closest('.finger-indicator')) {
-        const indicator = e.target.closest('.finger-indicator');
-        const id = Array.from(state.touches.entries()).find(([_, data]) => data.element === indicator)?.[0];
-        if (id !== undefined) {
-            removeIndicator(id);
+    // Check for indicator or occupied grid cell to remove
+    const indicator = e.target.closest('.finger-indicator');
+    const occupiedCell = state.interactionMode === 'grid' ? e.target.closest('.grid-cell.occupied') : null;
+
+    if (indicator || occupiedCell) {
+        const entry = Array.from(state.touches.entries()).find(([_, data]) => 
+            (indicator && data.element === indicator) || (occupiedCell && data.gridCell === occupiedCell)
+        );
+        
+        if (entry) {
+            removeIndicator(entry[0]);
             updateStatus();
+            updateUILanguage(); // Refresh desktop button text
+            return;
         }
-        return;
     }
 
     // Don't add indicators if clicking on UI
@@ -630,6 +656,7 @@ function handleMouseDown(e) {
     AudioEngine.init();
     createIndicator(e.clientX, e.clientY, `mouse_${Date.now()}`);
     updateStatus();
+    updateUILanguage(); // Refresh desktop button text
 }
 
 function handleTouchStart(e) {
@@ -641,8 +668,8 @@ function handleTouchStart(e) {
     if (state.isSelected) resetGame();
     if (e.cancelable) e.preventDefault();
 
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        createIndicator(e.changedTouches[i].clientX, e.changedTouches[i].clientY, e.changedTouches[i].identifier);
+    for (const touch of e.changedTouches) {
+        createIndicator(touch.clientX, touch.clientY, touch.identifier);
     }
 
     if (!state.isSelected) resetTimer();
@@ -656,8 +683,7 @@ function handleTouchMove(e) {
     if (e.cancelable) e.preventDefault();
     if (state.isSelected) return;
 
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
+    for (const touch of e.changedTouches) {
         const data = state.touches.get(touch.identifier);
         if (data) {
             const coords = getAppCoordinates(touch.clientX, touch.clientY);
@@ -692,8 +718,7 @@ function handleTouchEnd(e) {
 
     if (e.cancelable) e.preventDefault();
 
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
+    for (const touch of e.changedTouches) {
         if (!state.isSelected) {
             removeIndicator(touch.identifier);
         }
@@ -714,17 +739,15 @@ function updateStatus() {
             dom.statusText.textContent = t('desktopReady');
             dom.statusText.style.opacity = '1';
         }
+    } else if (state.touches.size === 0) {
+        dom.statusText.textContent = t('mobilePrompt');
+        dom.statusText.style.opacity = '0.6';
+    } else if (state.touches.size === 1) {
+        dom.statusText.textContent = t('mobileWait');
+        dom.statusText.style.opacity = '0.8';
     } else {
-        if (state.touches.size === 0) {
-            dom.statusText.textContent = t('mobilePrompt');
-            dom.statusText.style.opacity = '0.6';
-        } else if (state.touches.size === 1) {
-            dom.statusText.textContent = t('mobileWait');
-            dom.statusText.style.opacity = '0.8';
-        } else {
-            dom.statusText.textContent = t('mobileReady');
-            dom.statusText.style.opacity = '1';
-        }
+        dom.statusText.textContent = t('mobileReady');
+        dom.statusText.style.opacity = '1';
     }
 }
 
@@ -749,8 +772,9 @@ function startTimer() {
     updateStatus();
     
     state.touches.forEach(data => {
+        data.element.style.animationDuration = `${state.timerDuration}s`;
         data.element.classList.add('counting');
-        void data.element.offsetWidth;
+        data.element.getBoundingClientRect();
     });
 
     AudioEngine.playTick();
@@ -818,7 +842,7 @@ async function runEliminationSequence() {
         dom.statusText.textContent = 'SURVIVOR!';
         const survivorCell = document.querySelector('.grid-cell:not(.unavailable)');
         if (survivorCell) {
-            logHistory(parseInt(survivorCell.dataset.index));
+            logHistory(Number.parseInt(survivorCell.dataset.index));
         }
         AudioEngine.playWin();
     } else {
@@ -835,7 +859,13 @@ async function runEliminationSequence() {
 function finalizeSelection() {
     state.isSelected = true;
     state.isCounting = false;
-    dom.statusText.textContent = state.mode === 'winner' ? t('winText') : (state.mode === 'order' ? t('orderText') : (state.mode === 'die' ? t('dieText') : t('teamsText')));
+    
+    let textKey = 'teamsText';
+    if (state.mode === 'winner') textKey = 'winText';
+    else if (state.mode === 'order') textKey = 'orderText';
+    else if (state.mode === 'die') textKey = 'dieText';
+    
+    dom.statusText.textContent = t(textKey);
 
     const identifiers = Array.from(state.touches.keys());
     let winnerId;
@@ -926,6 +956,7 @@ function logHistory(colorIndex) {
     if (state.history[state.mode].length > 20) state.history[state.mode].shift();
     localStorage.setItem('chooseWhoHistoryV2', JSON.stringify(state.history));
     updateHistoryUI();
+    highlightLastWinners();
 }
 
 function resetGame(fullReset = false) {
@@ -959,6 +990,7 @@ function resetGame(fullReset = false) {
     }
     
     updateStatus();
+    highlightLastWinners();
 }
 
 init();
