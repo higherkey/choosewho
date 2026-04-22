@@ -940,7 +940,6 @@ function finalizeSelection() {
             data.element.querySelector('.rank-text').textContent = index + 1;
             data.element.querySelector('.rank-text').style.fontSize = ''; 
             if (index === 0) data.element.classList.add('winner');
-            else data.element.classList.add('lost');
         });
     } else if (state.mode === 'die') {
         const diceChars = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
@@ -985,8 +984,6 @@ function finalizeSelection() {
 
             if (id === winnerId) {
                 data.element.classList.add('winner');
-            } else {
-                data.element.classList.add('lost');
             }
         });
     }
