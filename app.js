@@ -227,7 +227,8 @@ const state = {
     volume: Number.parseFloat(localStorage.getItem('chooseWhoVolume') ?? '0.5'),
     isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
     lang: localStorage.getItem('chooseWhoLang') || 'en',
-    theme: localStorage.getItem('chooseWhoTheme') || 'neon'
+    theme: localStorage.getItem('chooseWhoTheme') || 'neon',
+    sessionScores: JSON.parse(localStorage.getItem('chooseWhoScores') || '{"winner":{},"order":{},"die":{},"teams":{}}')
 };
 
 const dom = {
@@ -252,6 +253,7 @@ const dom = {
     resetBoardBtn: document.getElementById('reset-board-btn'),
     volumeSlider: document.getElementById('volume-slider'),
     muteBtn: document.getElementById('mute-btn'),
+    resetScoresBtn: document.getElementById('reset-scores-btn'),
     langSelect: document.getElementById('lang-select'),
     themeSelect: document.getElementById('theme-select')
 };
@@ -445,6 +447,16 @@ function init() {
         });
     }
 
+    if (dom.resetScoresBtn) {
+        dom.resetScoresBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm('Reset all tournament scores for this mode?')) {
+                clearScores();
+                AudioEngine.playWin();
+            }
+        });
+    }
+
     if (dom.historyBtn) {
         dom.historyBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -484,6 +496,16 @@ function generateGrid() {
         const cell = document.createElement('div');
         cell.className = `grid-cell indicator-${i}`;
         cell.dataset.index = i;
+        
+        // Add score badge if score exists
+        const score = state.sessionScores[state.mode]?.[i];
+        if (score) {
+            const badge = document.createElement('div');
+            badge.className = 'score-badge';
+            badge.textContent = score;
+            cell.appendChild(badge);
+        }
+        
         dom.gridContainer.appendChild(cell);
     }
     highlightLastWinners();
@@ -635,6 +657,8 @@ function getShapeSVG(order) {
 }
 
 function removeIndicator(identifier) {
+    if (state.isSelected) return; // Safety check: Don't remove if selection is active
+    
     const data = state.touches.get(identifier);
     if (data) {
         data.element.classList.remove('active');
@@ -958,6 +982,12 @@ function finalizeSelection() {
             } else {
                 data.element.querySelector('.rank-text').textContent = 'T2';
             }
+
+            if (id === winnerId) {
+                data.element.classList.add('winner');
+            } else {
+                data.element.classList.add('lost');
+            }
         });
     }
 
@@ -981,8 +1011,42 @@ function logHistory(colorIndex) {
     state.history[state.mode].push(colorIndex);
     if (state.history[state.mode].length > 20) state.history[state.mode].shift();
     localStorage.setItem('chooseWhoHistoryV2', JSON.stringify(state.history));
+    
+    // Update Tournament Scores
+    updateScore(colorIndex);
+    
     updateHistoryUI();
     highlightLastWinners();
+}
+
+function updateScore(index) {
+    if (state.interactionMode !== 'grid') return;
+    
+    const mode = state.mode;
+    if (!state.sessionScores[mode]) state.sessionScores[mode] = {};
+    
+    state.sessionScores[mode][index] = (state.sessionScores[mode][index] || 0) + 1;
+    localStorage.setItem('chooseWhoScores', JSON.stringify(state.sessionScores));
+    
+    // Update the UI for this cell specifically if possible, or regenerate grid
+    const cell = dom.gridContainer.querySelector(`.grid-cell.indicator-${index}`);
+    if (cell) {
+        let badge = cell.querySelector('.score-badge');
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.className = 'score-badge';
+            cell.appendChild(badge);
+        }
+        badge.textContent = state.sessionScores[mode][index];
+        badge.classList.add('pulse-pop');
+        setTimeout(() => badge.classList.remove('pulse-pop'), 400);
+    }
+}
+
+function clearScores() {
+    state.sessionScores = {"winner":{},"order":{},"die":{},"teams":{}};
+    localStorage.setItem('chooseWhoScores', JSON.stringify(state.sessionScores));
+    generateGrid(); // Refresh to clear badges
 }
 
 function resetGame(fullReset = false) {
