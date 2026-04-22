@@ -772,21 +772,19 @@ body.theme-mono .indicator-7 { border: 1px solid white; outline: 4px double whit
 
 .finger-indicator.active {
     transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
 }
 
 .finger-indicator.lost {
-    animation: lost-burst 0.5s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
-}
-
-@keyframes lost-burst {
-    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    30% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; filter: brightness(2); }
-    100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; filter: blur(10px); }
+    opacity: 0.5 !important;
+    transform: translate(-50%, -50%) scale(0.9) !important;
 }
 
 .finger-indicator.winner {
     animation: winner-pulse 0.4s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
     z-index: 100;
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(1) !important;
 }
 
 @keyframes winner-pulse {
@@ -854,4 +852,50 @@ body.theme-cyber .finger-indicator.exploding {
         top: 120px;
         height: calc(100% - 120px);
     }
+}
+.score-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 2;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+@keyframes pulse-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5); background: var(--color-3); }
+    100% { transform: scale(1); }
+}
+
+.score-badge.pulse-pop {
+    animation: pulse-pop 0.4s ease;
+}
+
+.reset-scores-row {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.danger-btn {
+    background: rgba(255, 49, 49, 0.1) !important;
+    color: #ff3131 !important;
+    border-color: #ff3131 !important;
+}
+
+.danger-btn:hover {
+    background: rgba(255, 49, 49, 0.2) !important;
 }
