@@ -93,7 +93,6 @@ function t(key) {
 }
 
 const CONFIG = {
-    COUNTDOWN_MS: 3000,
     MAX_TOUCHES: 8,
     COLORS: [
         '#00f2ff', // Cyan
@@ -211,6 +210,17 @@ const AudioEngine = {
     }
 };
 
+function loadJSON(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed ?? fallback;
+    } catch (e) {
+        return fallback;
+    }
+}
+
 const state = {
     touches: new Map(), // identifier -> { x, y, element, colorIndex, order }
     timerId: null,
@@ -218,7 +228,7 @@ const state = {
     isCounting: false,
     isSelected: false,
     colorAvailability: new Array(CONFIG.MAX_TOUCHES).fill(true),
-    history: JSON.parse(localStorage.getItem('chooseWhoHistoryV2') || '{}'),
+    history: loadJSON('chooseWhoHistoryV2', {}),
     mode: 'winner', // 'winner' | 'order' | 'die' | 'teams'
     interactionMode: 'free', // 'free' | 'grid'
     selectionTarget: 'first', // 'first' | 'last'
@@ -228,7 +238,7 @@ const state = {
     isMuted: localStorage.getItem('chooseWhoMuted') === 'true',
     lang: localStorage.getItem('chooseWhoLang') || 'en',
     theme: localStorage.getItem('chooseWhoTheme') || 'neon',
-    sessionScores: JSON.parse(localStorage.getItem('chooseWhoScores') || '{"winner":{},"order":{},"die":{},"teams":{}}')
+    sessionScores: loadJSON('chooseWhoScores', { winner: {}, order: {}, die: {}, teams: {} })
 };
 
 const dom = {

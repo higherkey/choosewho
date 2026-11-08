@@ -27,7 +27,7 @@ The application utilizes a `Map` to track active touches/players by their unique
     - `First` (`| <`): Picks a winner instantly.
     - `Last` (`> |`): Sequentially eliminates players until one remains (Explosion mode).
 - **Desktop Controls**: Manual "Start" and "Reset" buttons are dynamically revealed on pointer-fine devices.
-- **Visual Timers**: SVG circular indicators overlay the touch points, synchronized with the 3000ms countdown.
+- **Visual Timers**: SVG circular indicators overlay the touch points, synchronized with the countdown (`state.timerDuration`, default 2.0s, adjustable 1-3s in Settings).
 - **Shape Geometry**: Unique SVG shapes (Circle, Triangle, etc.) assigned based on finger placement order (1-8).
 - **Audio Engine**: Synthesizes tones (sine/triangle/square/sawtooth) and procedural noise (explosions) using the Web Audio API.
 - **Haptic Feedback**: High-fidelity vibration pulses (where supported) synchronized with timer ticks and selection results.
@@ -40,7 +40,12 @@ The application utilizes a `Map` to track active touches/players by their unique
 - [x] New Themes: Cyber, Mono, Retro v2
 - [x] Order-based SVG Shape Rendering
 - [x] Per-mode History system
-- [x] GitHub Issue #15 for Advanced Settings
+- [x] Tournament scoring (Issue #21), per-mode persistent scores with Reset Scores
+- [x] PWA and offline caching (Issue #19)
+- [x] Settings modal (volume, language, timer, theme, install)
+- [ ] Open: Issue #15 Advanced Settings and Granularity
+- [ ] Open: Issue #20 Custom Icon & Shape Library
+- [ ] Open: Issue #29 Haptics and animations
 - [x] Final Handover
 
 ### Maintenance Recommendations

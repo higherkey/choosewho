@@ -32,6 +32,12 @@ Built with a focus on high-fidelity visuals, tactile feedback, and ultra-low lat
     - 🔢 **Order**: Shuffles all players and assigns a numerical turn order.
     - 👥 **Teams**: Automatically splits players into two balanced teams (T1/T2).
     - 🎲 **Roll a Die**: Assigns a random 1-6 value to every participant.
+- **Selection Targets**: **First** (`| <`) picks a winner instantly; **Last** (`> |`) eliminates players round by round until one remains. Last forces Grid mode.
+- **Interaction Modes**: **Free** (touch anywhere) or **Grid** (fixed slots, used for structured elimination).
+- **Tournament Scoring**: Per-mode persistent scores are shown as badges on player indicators. Use **Reset Scores** in Settings to clear scores for all modes.
+- **Themes**: Four visual themes: Neon, Retro, Cyber, and Mono.
+- **Languages**: Interface available in 8 languages: English, Spanish, French, German, Italian, Chinese, Japanese, and Korean.
+- **Settings**: A modal for volume and mute, language, countdown timer, theme, and app install.
 - **Advanced Engine**:
     - **Audio Synthesizer**: Procedural audio generation using the Web Audio API (Sine, Square, Sawtooth, Triangle).
     - **Haptic Feedback**: High-fidelity vibration pulses synchronized with the selection countdown.
@@ -59,7 +65,7 @@ ChooseWho is a completely static, dependency-free web application.
 
 ### Multi-Touch Gameplay (Mobile/Tablet)
 1. Place 2 to 8 fingers on the screen.
-2. Hold for **2.5 seconds** (visualized by circular progress timers).
+2. Hold for the countdown (default **2.0 seconds**, adjustable from 1 to 3 seconds in Settings; visualized by circular progress timers).
 3. The app will finalize the selection based on the active mode (Winner, Order, etc.).
 
 ### Desktop Support

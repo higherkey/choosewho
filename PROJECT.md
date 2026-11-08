@@ -46,7 +46,13 @@ Permanent project tracking document for the `main` branch.
 - [x] **Teams Mode**: Alternating assignment of fingers into two even teams (T1, T2).
 - [x] **Theme & Soundscape Engine**: Neon (default) and Retro themes, dynamic audio waveforms on Synth.
 - [x] Project metadata and license.
+- [x] **Grid Mode & Elimination**: Free/Grid interaction modes and First/Last selection targets (Last runs round-by-round elimination).
+- [x] **Tournament Scoring (#21)**: Per-mode persistent scores shown as badges, with Reset Scores in Settings.
+- [x] **PWA & Offline (#19)**: Installable, with offline caching via service worker.
+- [x] **Extra Themes & Languages**: Neon, Retro, Cyber, Mono themes; English, Spanish, French, German, Italian, Chinese, Japanese, Korean.
 
 ## 4. Issues and Out of Scope
 ### 4a) Current Backlog (Tracked via GitHub Issues)
-- (All currently specified feature issues resolved)
+- [ ] #15 "Feature: Advanced Settings and Granularity"
+- [ ] #20 "Feature: Custom Icon & Shape Library"
+- [ ] #29 "Haptics and animations"
