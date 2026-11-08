@@ -899,3 +899,52 @@ body.theme-cyber .finger-indicator.exploding {
 .danger-btn:hover {
     background: rgba(255, 49, 49, 0.2) !important;
 }
+
+/* ==========================================================================
+   Styles formerly inline in index.html
+   ID selectors keep the same precedence the inline attributes had over
+   class rules (.control-btn, .settings-row, etc.). Keep #install-row
+   display:none here: app.js sets installRow.style.display inline ('flex'),
+   which still overrides this rule.
+   ========================================================================== */
+#desktop-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    align-items: flex-start;
+}
+
+#start-btn,
+#reset-board-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+}
+
+#install-row {
+    display: none;
+}
+
+#install-app-btn {
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    flex-grow: 0;
+    min-width: auto;
+    background: var(--color-3);
+    color: black;
+}
+
+/* Inline background used to beat .control-btn:hover; keep that behaviour */
+#install-app-btn:hover {
+    background: var(--color-3);
+}
+
+#reset-scores-btn {
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    flex-grow: 0;
+    min-width: auto;
+}
